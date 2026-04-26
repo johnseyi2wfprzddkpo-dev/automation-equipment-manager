@@ -19,6 +19,15 @@ git push -u origin main
 
 在 Render 中选择 `New` -> `Blueprint`，连接 GitHub 仓库。Render 会读取项目根目录的 `render.yaml`。
 
+当前 `render.yaml` 使用 Render 免费 Web Service 测试方案：
+
+```text
+plan: free
+不配置 persistent disk / disk
+不设置 DATA_DIR=/var/data
+SQLite 使用项目默认路径 backend/data/app.db
+```
+
 创建服务时需要配置这些环境变量：
 
 ```text
@@ -28,7 +37,7 @@ ADMIN_PASSWORD=一个强密码
 AEM_TOKEN_SECRET=一串随机密钥
 ```
 
-`DATA_DIR=/var/data` 已在 `render.yaml` 中配置，并挂载了 1GB 持久化磁盘。SQLite 数据库和上传文件会保存在这个目录下。
+注意：Render 免费环境的文件系统不保证长期保存。SQLite 数据库和上传文件可能会因为实例重建、重新部署或平台清理而丢失。该方案适合公开演示和短期测试，不建议保存正式生产数据。
 
 部署完成后，记录后端地址，例如：
 

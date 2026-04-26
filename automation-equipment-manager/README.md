@@ -87,6 +87,18 @@ http://127.0.0.1:5173
 
 如果需要让不在同一局域网的人访问，项目必须部署到一台带公网 IP 的服务器上，并建议绑定域名。仅在自己电脑上启动服务，外网用户无法稳定访问。
 
+### Render 免费测试方案
+
+当前仓库内的 `render.yaml` 按 Render 免费 Web Service 配置：
+
+- 使用 `plan: free`
+- 不配置 persistent disk / disk
+- 不设置 `DATA_DIR=/var/data`
+- SQLite 继续使用项目默认路径 `backend/data/app.db`
+- 保留环境变量：`ALLOWED_ORIGINS`、`ADMIN_USERNAME`、`ADMIN_PASSWORD`、`AEM_TOKEN_SECRET`
+
+注意：Render 免费环境的文件系统不保证长期保存。使用 SQLite 免费测试时，`backend/data/app.db` 中的数据可能会因为实例重建、重新部署或平台清理而丢失。此方案适合演示和临时测试，不建议作为正式生产数据方案。
+
 推荐部署结构：
 
 ```text

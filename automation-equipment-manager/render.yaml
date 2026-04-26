@@ -2,12 +2,11 @@ services:
   - type: web
     name: automation-equipment-manager-api
     env: python
+    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: DATA_DIR
-        value: /var/data
       - key: ALLOWED_ORIGINS
         value: https://your-vercel-domain.vercel.app
       - key: ADMIN_USERNAME
@@ -16,7 +15,3 @@ services:
         sync: false
       - key: AEM_TOKEN_SECRET
         sync: false
-    disk:
-      name: automation-equipment-manager-data
-      mountPath: /var/data
-      sizeGB: 1
