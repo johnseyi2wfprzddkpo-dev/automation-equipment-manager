@@ -1,16 +1,18 @@
 import logoUrl from "../assets/huadeng-logo.svg";
 
 const menuItems = [
-  { key: "dashboard", label: "首页看板" },
-  { key: "equipment", label: "设备台账" },
-  { key: "qr-scan", label: "扫码查询" },
-  { key: "outsource", label: "外发管理" },
-  { key: "repair", label: "维修异常" },
-  { key: "maintenance", label: "保养记录" },
-  { key: "users", label: "用户权限", adminOnly: true },
+  { key: "dashboard", label: "首页看板", icon: "D" },
+  { key: "equipment", label: "设备台账", icon: "E" },
+  { key: "qr-scan", label: "扫码查询", icon: "Q" },
+  { key: "outsource", label: "外发管理", icon: "O" },
+  { key: "repair", label: "维修异常", icon: "R" },
+  { key: "maintenance", label: "保养记录", icon: "M" },
+  { key: "users", label: "用户权限", icon: "U", adminOnly: true },
 ];
 
 export default function Layout({ children, currentPage, onNavigate, onLogout, user }) {
+  const currentItem = menuItems.find((item) => item.key === currentPage || (item.key === "equipment" && currentPage.startsWith("equipment-")));
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -39,7 +41,8 @@ export default function Layout({ children, currentPage, onNavigate, onLogout, us
               onClick={() => onNavigate(item.key)}
               type="button"
             >
-              {item.label}
+              <span className="nav-icon" aria-hidden="true">{item.icon}</span>
+              <span>{item.label}</span>
             </button>
           ))}
         </nav>
@@ -55,7 +58,22 @@ export default function Layout({ children, currentPage, onNavigate, onLogout, us
         </div>
       </aside>
 
-      <main className="main-content">{children}</main>
+      <main className="main-content">
+        <header className="topbar">
+          <div>
+            <p className="topbar-kicker">Industrial Digital Platform</p>
+            <h2>{currentItem?.label ?? "管理中心"}</h2>
+          </div>
+          <div className="topbar-meta">
+            <span className="system-pill">云端测试环境</span>
+            <div className="topbar-user">
+              <span>{user.full_name || user.username}</span>
+              <strong>{user.role}</strong>
+            </div>
+          </div>
+        </header>
+        {children}
+      </main>
     </div>
   );
 }

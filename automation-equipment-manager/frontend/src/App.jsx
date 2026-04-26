@@ -111,7 +111,7 @@ export default function App() {
       return <UserList />;
     }
 
-    return <Dashboard />;
+    return <Dashboard onNavigate={openPage} />;
   }
 
   function handleLogout() {

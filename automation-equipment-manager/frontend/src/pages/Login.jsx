@@ -26,11 +26,34 @@ export default function Login({ onLogin }) {
 
   return (
     <main className="login-page">
+      <section className="login-visual" aria-hidden="true">
+        <div className="login-schematic">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="login-visual-copy">
+          <p>Industrial Intelligence</p>
+          <h2>设备全生命周期数字化管理平台</h2>
+          <ul>
+            <li>设备台账与状态追踪</li>
+            <li>外发、维修、保养闭环管理</li>
+            <li>利用率统计与运营驾驶舱</li>
+          </ul>
+        </div>
+      </section>
       <form className="login-card" onSubmit={handleSubmit}>
-        <img src={logoUrl} alt="华登集团" />
-        <div>
-          <h1>华登集团自动化设备管理系统</h1>
-          <p>请使用账号登录</p>
+        <div className="login-brand">
+          <img src={logoUrl} alt="华登集团" />
+          <div>
+            <h1>华登集团自动化设备管理系统</h1>
+            <p>云端测试版</p>
+          </div>
+        </div>
+        <div className="login-heading">
+          <p>欢迎登录</p>
+          <h2>智能制造管理平台</h2>
         </div>
 
         {error && <div className="alert">{error}</div>}
