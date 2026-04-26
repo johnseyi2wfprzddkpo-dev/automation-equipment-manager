@@ -1,7 +1,7 @@
 const DEFAULT_API_BASE_URL = import.meta.env.DEV
   ? "http://127.0.0.1:8000"
   : "https://automation-equipment-manager-api.onrender.com";
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/$/, "");
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, "");
 const TOKEN_KEY = "aem_access_token";
 
 export function getStoredToken() {
