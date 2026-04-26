@@ -1,0 +1,10 @@
+[2m13:27:41[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: [33mDuplicate key "actual_return_date" in object literal[33m
+68 |      const form = returnForms[log.id] ?? {
+69 |        actual_return_date: new Date().toISOString().slice(0, 10),
+70 |        actual_return_date: toDateInput(),
+   |        ^
+71 |        new_status: "待用",
+72 |        operator: "",
+[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mD:/demo/automation-equipment-manager/frontend/src/pages/OutsourceList.jsx[39m

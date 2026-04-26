@@ -1,0 +1,218 @@
+import { useEffect, useState } from "react";
+
+import {
+  downloadBlob,
+  downloadOutsourceTemplate,
+  exportOutsourceExcel,
+  getOutsourceList,
+  importOutsourceExcel,
+  returnOutsourceLog,
+} from "../api/client.js";
+import StatusBadge from "../components/StatusBadge.jsx";
+import { formatDate, toDateInput } from "../utils/datetime.js";
+
+export default function OutsourceList() {
+  const [logs, setLogs] = useState([]);
+  const [returnForms, setReturnForms] = useState({});
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function loadLogs() {
+    setLoading(true);
+    setError("");
+    getOutsourceList()
+      .then(setLogs)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadLogs();
+  }, []);
+
+  function updateReturnForm(id, field, value) {
+    setReturnForms((current) => ({
+      ...current,
+      [id]: {
+        actual_return_date: toDateInput(),
+        new_status: "待用",
+        operator: "",
+        remark: "",
+        ...(current[id] ?? {}),
+        [field]: value,
+      },
+    }));
+  }
+
+  async function handleReturn(log) {
+    const form = returnForms[log.id] ?? {
+      actual_return_date: toDateInput(),
+      new_status: "待用",
+      operator: "",
+      remark: "",
+    };
+
+    setError("");
+    setMessage("");
+    try {
+      await returnOutsourceLog(log.id, {
+        actual_return_date: form.actual_return_date,
+        new_status: form.new_status,
+        operator: form.operator || null,
+        remark: form.remark || null,
+      });
+      setMessage(`${log.equipment_code} 已登记返回。`);
+      loadLogs();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleDownloadTemplate() {
+    setError("");
+    try {
+      const blob = await downloadOutsourceTemplate();
+      downloadBlob(blob, "外发记录导入模板.xlsx");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleExport() {
+    setError("");
+    try {
+      const blob = await exportOutsourceExcel();
+      downloadBlob(blob, "外发记录导出.xlsx");
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleImport(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    try {
+      const result = await importOutsourceExcel(file);
+      setMessage(`导入完成：新增 ${result.created_count} 条，登记返回 ${result.returned_count} 条，跳过 ${result.skipped_count} 条。`);
+      loadLogs();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  return (
+    <section className="page-stack">
+      <div className="page-header">
+        <div>
+          <p className="eyebrow">外发管理</p>
+          <h2>外发记录</h2>
+        </div>
+        <div className="action-row">
+          <button className="secondary-button" onClick={handleDownloadTemplate} type="button">
+            下载模板
+          </button>
+          <label className="file-button">
+            导入Excel
+            <input accept=".xlsx" onChange={handleImport} type="file" />
+          </label>
+          <button className="secondary-button" onClick={handleExport} type="button">
+            导出Excel
+          </button>
+          <button className="secondary-button" onClick={loadLogs} type="button">
+            刷新
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="alert">{error}</div>}
+      {message && <div className="success-alert">{message}</div>}
+
+      <section className="panel table-panel">
+        {loading ? (
+          <div className="empty-state">正在加载外发记录...</div>
+        ) : logs.length === 0 ? (
+          <div className="empty-state">暂无外发记录，可在设备详情页登记外发。</div>
+        ) : (
+          <div className="table-wrap">
+            <table className="data-table outsource-table">
+              <thead>
+                <tr>
+                  <th>设备编号</th>
+                  <th>设备名称</th>
+                  <th>外发单位</th>
+                  <th>外发原因</th>
+                  <th>外发日期</th>
+                  <th>预计返回</th>
+                  <th>实际返回</th>
+                  <th>状态</th>
+                  <th>是否超期</th>
+                  <th>登记返回</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log) => {
+                  const form = returnForms[log.id] ?? {
+                    actual_return_date: toDateInput(),
+                    new_status: "待用",
+                    operator: "",
+                    remark: "",
+                  };
+                  return (
+                    <tr key={log.id}>
+                      <td>{log.equipment_code}</td>
+                      <td>{log.equipment_name}</td>
+                      <td>{log.outsource_company}</td>
+                      <td>{log.outsource_reason || "-"}</td>
+                      <td>{formatDate(log.outsource_date)}</td>
+                      <td>{formatDate(log.expected_return_date)}</td>
+                      <td>{formatDate(log.actual_return_date)}</td>
+                      <td>
+                        <StatusBadge tone={log.status === "外发中" ? "warning" : "success"}>{log.status}</StatusBadge>
+                      </td>
+                      <td>
+                        {log.is_overdue ? <StatusBadge tone="danger">已超期</StatusBadge> : <span className="muted-text">否</span>}
+                      </td>
+                      <td>
+                        {log.actual_return_date ? (
+                          <span className="muted-text">已返回</span>
+                        ) : (
+                          <div className="inline-return-form">
+                            <input
+                              className="form-control"
+                              type="date"
+                              value={form.actual_return_date}
+                              onChange={(event) => updateReturnForm(log.id, "actual_return_date", event.target.value)}
+                            />
+                            <select
+                              className="form-control"
+                              value={form.new_status}
+                              onChange={(event) => updateReturnForm(log.id, "new_status", event.target.value)}
+                            >
+                              <option value="待用">待用</option>
+                              <option value="调试中">调试中</option>
+                              <option value="生产中">生产中</option>
+                            </select>
+                            <button className="primary-button" onClick={() => handleReturn(log)} type="button">
+                              返回
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </section>
+  );
+}
