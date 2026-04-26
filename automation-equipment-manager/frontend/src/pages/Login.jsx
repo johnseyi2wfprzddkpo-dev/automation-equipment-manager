@@ -4,8 +4,8 @@ import { login } from "../api/client.js";
 import logoUrl from "../assets/huadeng-logo.svg";
 
 export default function Login({ onLogin }) {
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin123");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
