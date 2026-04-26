@@ -53,8 +53,6 @@ export default function Login({ onLogin }) {
         <button className="primary-button" disabled={loading} type="submit">
           {loading ? "登录中..." : "登录"}
         </button>
-
-        <p className="login-hint">默认管理员：admin / admin123</p>
       </form>
     </main>
   );

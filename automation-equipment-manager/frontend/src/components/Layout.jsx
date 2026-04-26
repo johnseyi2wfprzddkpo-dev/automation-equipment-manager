@@ -23,7 +23,7 @@ export default function Layout({ children, currentPage, onNavigate, onLogout, us
               <span>华登集团</span>
               <span>自动化设备管理系统</span>
             </h1>
-            <p>本地轻量版</p>
+            <p>云端测试版</p>
           </div>
         </div>
 
