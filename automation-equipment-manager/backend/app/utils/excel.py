@@ -24,6 +24,36 @@ EQUIPMENT_COLUMNS = [
     ("remark", "备注"),
 ]
 
+EQUIPMENT_LEDGER_IMPORT_COLUMNS = [
+    ("registration_code", "登记编号"),
+    ("factory_area", "厂区"),
+    ("department", "部门"),
+    ("primary_category", "一级类别"),
+    ("equipment_type", "二级类别"),
+    ("equipment_name", "名称"),
+    ("specification", "规格型号"),
+    ("product_code", "货号"),
+    ("unit", "单位"),
+    ("purchase_date", "购买日期"),
+    ("brand_supplier", "品牌厂家"),
+    ("manager", "责任人"),
+    ("usage_status", "使用状态"),
+    ("current_location", "目前所在位置"),
+    ("current_factory_area", "目前所在厂区"),
+    ("remark", "备注"),
+    ("registrar", "登记人"),
+    ("created_at", "创建时间"),
+    ("updated_at", "更新时间"),
+]
+
+EQUIPMENT_LEDGER_STATUS_MAP = {
+    "正常使用": "生产中",
+    "备用": "待用",
+    "维修": "维修中",
+    "报废": "报废",
+    "停用": "停用",
+}
+
 OUTSOURCE_COLUMNS = [
     ("equipment_code", "设备编号"),
     ("equipment_name", "设备名称"),
@@ -108,6 +138,25 @@ def _normalize_date(value, row_number: int, column_name: str):
             except ValueError:
                 pass
     raise HTTPException(status_code=400, detail=f"第 {row_number} 行 {column_name} 日期格式不正确，应为 YYYY-MM-DD")
+
+
+def _normalize_date_or_none(value):
+    if value in [None, ""]:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        value = value.strip()
+        if not value:
+            return None
+        for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%Y.%m.%d"):
+            try:
+                return datetime.strptime(value, fmt).date()
+            except ValueError:
+                pass
+    return None
 
 
 def _normalize_float(value, row_number: int, column_name: str):
@@ -314,6 +363,71 @@ def parse_equipment_import(file_bytes: bytes) -> list[schemas.EquipmentCreate]:
     if not records:
         raise HTTPException(status_code=400, detail="Excel 中没有可导入的数据")
     return records
+
+
+def parse_equipment_ledger_import(file_bytes: bytes):
+    sheet = _load_active_sheet(file_bytes)
+    headers = [_normalize_text(cell.value) for cell in sheet[1]]
+    header_to_index = {label: index for index, label in enumerate(headers) if label}
+    missing = [label for label in ["登记编号", "名称"] if label not in header_to_index]
+    if missing:
+        raise HTTPException(status_code=400, detail=f"缺少必填列：{', '.join(missing)}")
+
+    records = []
+    failures = []
+    total_count = 0
+    skipped_count = 0
+
+    for row_number, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+        total_count += 1
+        if not any(value not in [None, ""] for value in row):
+            skipped_count += 1
+            continue
+
+        row_data = {}
+        for key, label in EQUIPMENT_LEDGER_IMPORT_COLUMNS:
+            index = header_to_index.get(label)
+            row_data[key] = row[index] if index is not None and index < len(row) else None
+
+        equipment_code = _normalize_text(row_data["registration_code"])
+        equipment_name = _normalize_text(row_data["equipment_name"])
+        if not equipment_code:
+            failures.append({"row_number": row_number, "reason": "登记编号不能为空"})
+            continue
+        if not equipment_name:
+            failures.append({"row_number": row_number, "reason": "名称不能为空"})
+            continue
+
+        raw_status = _normalize_text(row_data["usage_status"])
+        current_status = EQUIPMENT_LEDGER_STATUS_MAP.get(raw_status, "待用")
+        equipment_type = _normalize_text(row_data["equipment_type"]) or _normalize_text(row_data["primary_category"]) or "未分类"
+        brand_supplier = _normalize_text(row_data["brand_supplier"])
+
+        payload = {
+            "equipment_code": equipment_code,
+            "equipment_name": equipment_name,
+            "equipment_type": equipment_type,
+            "brand": brand_supplier,
+            "supplier": brand_supplier,
+            "purchase_date": _normalize_date_or_none(row_data["purchase_date"]),
+            "current_status": current_status,
+            "current_location": _normalize_text(row_data["current_location"]),
+            "current_product_code": _normalize_text(row_data["product_code"]),
+            "manager": _normalize_text(row_data["manager"]),
+            "remark": _normalize_text(row_data["remark"]),
+        }
+
+        try:
+            records.append({"row_number": row_number, "equipment": schemas.EquipmentCreate(**payload)})
+        except Exception as exc:
+            failures.append({"row_number": row_number, "reason": f"数据校验失败：{exc}"})
+
+    return {
+        "records": records,
+        "failures": failures,
+        "total_count": total_count,
+        "skipped_count": skipped_count,
+    }
 
 
 def build_outsource_template() -> BytesIO:

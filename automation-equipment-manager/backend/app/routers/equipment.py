@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.database import UPLOAD_DIR, get_db
 from app.security import get_current_user, require_roles
-from app.utils.excel import build_equipment_export, build_equipment_template, parse_equipment_import
+from app.utils.excel import build_equipment_export, build_equipment_template, parse_equipment_import, parse_equipment_ledger_import
 from app.utils.enums import EQUIPMENT_STATUSES
 
 
@@ -113,6 +113,45 @@ async def import_equipment_excel(
         "updated_count": updated_count,
         "skipped_count": skipped_count,
         "total_count": len(records),
+    }
+
+
+@router.post("/import-excel")
+async def import_equipment_ledger_excel(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _user=Depends(require_roles("管理员")),
+):
+    if not file.filename or not file.filename.lower().endswith(".xlsx"):
+        raise HTTPException(status_code=400, detail="只支持 .xlsx 文件")
+
+    parsed = parse_equipment_ledger_import(await file.read())
+    created_count = 0
+    updated_count = 0
+    failures = list(parsed["failures"])
+
+    for item in parsed["records"]:
+        row_number = item["row_number"]
+        record = item["equipment"]
+        existing = crud.get_equipment_by_code(db, record.equipment_code)
+        try:
+            if existing:
+                crud.update_equipment(db, existing, schemas.EquipmentUpdate(**record.model_dump()))
+                updated_count += 1
+            else:
+                crud.create_equipment(db, record)
+                created_count += 1
+        except Exception as exc:
+            db.rollback()
+            failures.append({"row_number": row_number, "reason": f"写入失败：{exc}"})
+
+    return {
+        "total_count": parsed["total_count"],
+        "created_count": created_count,
+        "updated_count": updated_count,
+        "skipped_count": parsed["skipped_count"],
+        "failed_count": len(failures),
+        "failures": failures,
     }
 
 

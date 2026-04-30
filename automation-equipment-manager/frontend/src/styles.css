@@ -1564,6 +1564,113 @@ select.form-control option {
   background: rgba(14, 27, 46, 0.96);
 }
 
+.import-modal {
+  width: min(920px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  overflow-y: auto;
+}
+
+.import-modal-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(320px, 1.2fr);
+  gap: 14px;
+}
+
+.import-upload-card,
+.import-help-card,
+.import-result {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.import-upload-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.import-section-title {
+  margin: 0;
+  color: var(--text-strong);
+  font-weight: 800;
+}
+
+.import-file-button {
+  width: 100%;
+  min-height: 46px;
+}
+
+.mapping-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.mapping-list span {
+  border: 1px solid rgba(52, 213, 255, 0.18);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: rgba(52, 213, 255, 0.06);
+  color: #cfe0f2;
+  font-size: 13px;
+}
+
+.import-result {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.import-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.import-stats-grid article {
+  border: 1px solid rgba(104, 176, 255, 0.20);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.import-stats-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.import-stats-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-strong);
+  font-size: 26px;
+}
+
+.import-failures {
+  border: 1px solid rgba(255, 95, 109, 0.26);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 95, 109, 0.10);
+}
+
+.import-failures p {
+  margin: 0 0 8px;
+  color: #ffc0c6;
+  font-weight: 800;
+}
+
+.import-failures ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: #ffd6da;
+}
+
 .scanner-frame {
   border-color: var(--line);
   box-shadow: inset 0 0 28px rgba(52, 213, 255, 0.12);
@@ -1788,6 +1895,12 @@ select.form-control option {
   }
 
   .quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .import-modal-grid,
+  .mapping-list,
+  .import-stats-grid {
     grid-template-columns: 1fr;
   }
 }

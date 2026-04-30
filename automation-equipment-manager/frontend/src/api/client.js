@@ -148,6 +148,15 @@ export function importEquipmentExcel(file) {
   });
 }
 
+export function importEquipmentLedgerExcel(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return request("/api/equipment/import-excel", {
+    method: "POST",
+    body: formData,
+  });
+}
+
 export function getEquipment(id) {
   return request(`/api/equipment/${id}`);
 }
