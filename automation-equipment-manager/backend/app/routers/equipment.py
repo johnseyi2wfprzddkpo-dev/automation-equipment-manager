@@ -127,20 +127,20 @@ async def import_equipment_ledger_excel(
 
     parsed = parse_equipment_ledger_import(await file.read())
     created_count = 0
-    updated_count = 0
+    duplicate_skipped_count = 0
     failures = list(parsed["failures"])
 
     for item in parsed["records"]:
         row_number = item["row_number"]
         record = item["equipment"]
         existing = crud.get_equipment_by_code(db, record.equipment_code)
+        if existing:
+            duplicate_skipped_count += 1
+            continue
+
         try:
-            if existing:
-                crud.update_equipment(db, existing, schemas.EquipmentUpdate(**record.model_dump()))
-                updated_count += 1
-            else:
-                crud.create_equipment(db, record)
-                created_count += 1
+            crud.create_equipment(db, record)
+            created_count += 1
         except Exception as exc:
             db.rollback()
             failures.append({"row_number": row_number, "reason": f"写入失败：{exc}"})
@@ -148,8 +148,9 @@ async def import_equipment_ledger_excel(
     return {
         "total_count": parsed["total_count"],
         "created_count": created_count,
-        "updated_count": updated_count,
-        "skipped_count": parsed["skipped_count"],
+        "updated_count": 0,
+        "skipped_count": parsed["skipped_count"] + duplicate_skipped_count,
+        "duplicate_skipped_count": duplicate_skipped_count,
         "failed_count": len(failures),
         "failures": failures,
     }

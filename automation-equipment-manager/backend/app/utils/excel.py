@@ -48,11 +48,37 @@ EQUIPMENT_LEDGER_IMPORT_COLUMNS = [
 
 EQUIPMENT_LEDGER_STATUS_MAP = {
     "正常使用": "生产中",
+    "使用中": "生产中",
+    "生产中": "生产中",
     "备用": "待用",
+    "闲置": "待用",
+    "待用": "待用",
     "维修": "维修中",
+    "维修中": "维修中",
+    "待维修": "维修中",
+    "故障": "维修中",
+    "异常": "维修中",
+    "保养": "保养中",
+    "保养中": "保养中",
+    "调试": "调试中",
+    "调试中": "调试中",
+    "待验收": "待验收",
     "报废": "报废",
     "停用": "停用",
 }
+
+
+def normalize_equipment_status(usage_status, current_factory_area=None):
+    factory_area = _normalize_text(current_factory_area)
+    if factory_area and "".join(factory_area.split()) == "外厂":
+        return "外发中"
+
+    status = _normalize_text(usage_status)
+    if not status:
+        return "待用"
+
+    status_key = "".join(status.split())
+    return EQUIPMENT_LEDGER_STATUS_MAP.get(status_key, "待用")
 
 OUTSOURCE_COLUMNS = [
     ("equipment_code", "设备编号"),
@@ -398,8 +424,7 @@ def parse_equipment_ledger_import(file_bytes: bytes):
             failures.append({"row_number": row_number, "reason": "名称不能为空"})
             continue
 
-        raw_status = _normalize_text(row_data["usage_status"])
-        current_status = EQUIPMENT_LEDGER_STATUS_MAP.get(raw_status, "待用")
+        current_status = normalize_equipment_status(row_data["usage_status"], row_data["current_factory_area"])
         equipment_type = _normalize_text(row_data["equipment_type"]) or _normalize_text(row_data["primary_category"]) or "未分类"
         brand_supplier = _normalize_text(row_data["brand_supplier"])
 

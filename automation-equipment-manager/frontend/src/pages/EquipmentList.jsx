@@ -92,7 +92,7 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
     try {
       const result = await importEquipmentLedgerExcel(importFile);
       setImportResult(result);
-      setMessage(`导入完成：新增 ${result.created_count} 条，更新 ${result.updated_count} 条，失败 ${result.failed_count} 条。`);
+      setMessage(`导入完成：新增 ${result.created_count} 条，重复跳过 ${result.duplicate_skipped_count ?? 0} 条，失败 ${result.failed_count} 条。`);
       loadEquipment();
     } catch (err) {
       setError(err.message);
@@ -217,8 +217,8 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
                 <div className="import-stats-grid">
                   <article><span>总行数</span><strong>{importResult.total_count}</strong></article>
                   <article><span>新增</span><strong>{importResult.created_count}</strong></article>
-                  <article><span>更新</span><strong>{importResult.updated_count}</strong></article>
-                  <article><span>跳过</span><strong>{importResult.skipped_count}</strong></article>
+                  <article><span>重复跳过</span><strong>{importResult.duplicate_skipped_count ?? 0}</strong></article>
+                  <article><span>空行跳过</span><strong>{importResult.skipped_count - (importResult.duplicate_skipped_count ?? 0)}</strong></article>
                   <article><span>失败</span><strong>{importResult.failed_count}</strong></article>
                 </div>
 
