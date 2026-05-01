@@ -70,7 +70,8 @@ EQUIPMENT_LEDGER_STATUS_MAP = {
 
 def normalize_equipment_status(usage_status, current_factory_area=None):
     factory_area = _normalize_text(current_factory_area)
-    if factory_area and "".join(factory_area.split()) == "外厂":
+    normalized_factory_area = "".join(factory_area.split()) if factory_area else ""
+    if normalized_factory_area and "外厂" in normalized_factory_area:
         return "外发中"
 
     status = _normalize_text(usage_status)
