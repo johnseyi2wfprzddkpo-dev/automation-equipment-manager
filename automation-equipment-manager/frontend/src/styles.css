@@ -1484,6 +1484,29 @@ select.form-control option {
   color: #ff8b95;
 }
 
+.danger-button {
+  min-height: 40px;
+  border: 1px solid rgba(255, 95, 109, 0.42);
+  border-radius: 8px;
+  background: rgba(255, 95, 109, 0.14);
+  color: #ffd6da;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 8px 14px;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.danger-button:hover:not(:disabled) {
+  border-color: rgba(255, 95, 109, 0.72);
+  background: rgba(255, 95, 109, 0.22);
+  transform: translateY(-1px);
+}
+
+.danger-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
 .table-panel {
   background: var(--surface);
 }
@@ -1669,6 +1692,40 @@ select.form-control option {
   margin: 0;
   padding-left: 18px;
   color: #ffd6da;
+}
+
+.danger-zone-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-color: rgba(255, 95, 109, 0.26);
+  background:
+    linear-gradient(90deg, rgba(255, 95, 109, 0.10), transparent 46%),
+    var(--surface);
+}
+
+.danger-zone-panel h3 {
+  margin: 0 0 8px;
+  color: var(--text-strong);
+}
+
+.danger-zone-panel p:last-child {
+  margin: 0;
+}
+
+.clear-data-modal {
+  display: grid;
+  gap: 14px;
+  width: min(560px, 100%);
+}
+
+.clear-confirm-field {
+  display: grid;
+  gap: 8px;
+  color: #c8d8ea;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .scanner-frame {
@@ -1902,5 +1959,10 @@ select.form-control option {
   .mapping-list,
   .import-stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .danger-zone-panel {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

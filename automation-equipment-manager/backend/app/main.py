@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.database import Base, UPLOAD_DIR, engine
-from app.routers import auth, dashboard, equipment, location, maintenance, outsource, production, repair, status
+from app.routers import admin, auth, dashboard, equipment, location, maintenance, outsource, production, repair, status
 from app.security import hash_password
 
 
@@ -60,6 +60,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
 app.include_router(equipment.router, prefix="/api")
 app.include_router(status.router, prefix="/api")
 app.include_router(location.router, prefix="/api")

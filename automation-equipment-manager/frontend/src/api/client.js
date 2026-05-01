@@ -104,6 +104,12 @@ export function createUser(payload) {
   });
 }
 
+export function clearEquipmentData() {
+  return request("/api/admin/clear-equipment-data", {
+    method: "DELETE",
+  });
+}
+
 export function getEquipmentList(filters = {}) {
   const query = buildQuery(filters);
   return request(`/api/equipment${query ? `?${query}` : ""}`);

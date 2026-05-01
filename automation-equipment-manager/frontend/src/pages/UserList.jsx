@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { createUser, getUsers } from "../api/client.js";
+import { clearEquipmentData, createUser, getUsers } from "../api/client.js";
 import { formatDateTime } from "../utils/datetime.js";
 
 const roles = ["管理员", "技术员", "生产人员", "领导"];
@@ -11,12 +11,17 @@ const emptyForm = {
   role: "领导",
   is_active: true,
 };
+const CLEAR_CONFIRM_TEXT = "我确认清空所有设备数据";
 
 export default function UserList() {
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [clearModalOpen, setClearModalOpen] = useState(false);
+  const [clearConfirmText, setClearConfirmText] = useState("");
+  const [clearing, setClearing] = useState(false);
+  const [clearResult, setClearResult] = useState(null);
 
   function loadUsers() {
     setError("");
@@ -54,6 +59,28 @@ export default function UserList() {
     }
   }
 
+  async function handleClearEquipmentData() {
+    if (clearConfirmText !== CLEAR_CONFIRM_TEXT) {
+      setError("确认文字不正确，未执行清空操作。");
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setClearing(true);
+    try {
+      const result = await clearEquipmentData();
+      setClearResult(result);
+      setMessage("设备数据已清空，首页统计将在刷新后归零。");
+      setClearModalOpen(false);
+      setClearConfirmText("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setClearing(false);
+    }
+  }
+
   return (
     <section className="page-stack">
       <div className="page-header">
@@ -65,6 +92,14 @@ export default function UserList() {
 
       {error && <div className="alert">{error}</div>}
       {message && <div className="success-alert">{message}</div>}
+      {clearResult && (
+        <div className="success-alert">
+          清空完成：设备台账 {clearResult.deleted_counts?.equipment ?? 0} 条，状态记录 {clearResult.deleted_counts?.equipment_status_log ?? 0} 条，
+          位置记录 {clearResult.deleted_counts?.equipment_location_log ?? 0} 条，生产记录 {clearResult.deleted_counts?.equipment_production_log ?? 0} 条，
+          维修记录 {clearResult.deleted_counts?.equipment_repair_log ?? 0} 条，保养记录 {clearResult.deleted_counts?.equipment_maintenance_log ?? 0} 条，
+          外发记录 {clearResult.deleted_counts?.equipment_outsource_log ?? 0} 条。
+        </div>
+      )}
 
       <form className="panel form-panel" onSubmit={handleSubmit}>
         <div className="form-grid">
@@ -93,6 +128,60 @@ export default function UserList() {
           <button className="primary-button" type="submit">创建用户</button>
         </div>
       </form>
+
+      <section className="panel danger-zone-panel">
+        <div>
+          <p className="panel-kicker">System Settings</p>
+          <h3>系统设置</h3>
+          <p className="muted-text">
+            仅系统管理员可执行。清空后会删除设备台账、状态、位置、外发、生产、维修、保养记录，不会删除用户账号。
+          </p>
+        </div>
+        <button className="danger-button" onClick={() => setClearModalOpen(true)} type="button">
+          清空设备数据
+        </button>
+      </section>
+
+      {clearModalOpen && (
+        <div className="modal-backdrop" role="presentation" onClick={() => setClearModalOpen(false)}>
+          <div className="modal-panel clear-data-modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <p className="panel-kicker">Danger Operation</p>
+                <h3>清空设备数据</h3>
+              </div>
+              <button className="text-button" onClick={() => setClearModalOpen(false)} type="button">
+                关闭
+              </button>
+            </div>
+            <div className="alert">
+              该操作会清空所有设备相关数据，且不可在系统内撤销。用户账号不会被删除。
+            </div>
+            <label className="clear-confirm-field">
+              请输入确认文字：{CLEAR_CONFIRM_TEXT}
+              <input
+                className="form-control"
+                value={clearConfirmText}
+                onChange={(event) => setClearConfirmText(event.target.value)}
+                placeholder={CLEAR_CONFIRM_TEXT}
+              />
+            </label>
+            <div className="form-actions">
+              <button className="secondary-button" onClick={() => setClearModalOpen(false)} type="button">
+                取消
+              </button>
+              <button
+                className="danger-button"
+                disabled={clearing || clearConfirmText !== CLEAR_CONFIRM_TEXT}
+                onClick={handleClearEquipmentData}
+                type="button"
+              >
+                {clearing ? "正在清空..." : "确认清空"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="panel table-panel">
         <div className="table-wrap">
