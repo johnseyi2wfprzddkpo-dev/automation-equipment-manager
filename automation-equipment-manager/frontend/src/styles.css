@@ -2173,9 +2173,64 @@ select.form-control option {
   box-shadow: var(--shadow);
 }
 
+.login-data-stream {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(0, 243, 255, 0.16), transparent 30%),
+    linear-gradient(135deg, rgba(7, 22, 42, 0.92), rgba(11, 32, 56, 0.78) 48%, rgba(2, 11, 22, 0.94)),
+    rgba(7, 20, 38, 0.96);
+}
+
+.digital-rain-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.login-data-stream::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 243, 255, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 74% 18%, rgba(0, 243, 255, 0.16), transparent 18%),
+    linear-gradient(90deg, rgba(2, 10, 20, 0.16), transparent 34%, rgba(2, 10, 20, 0.5));
+  background-size: 36px 36px, 36px 36px, auto, auto;
+}
+
+.login-data-stream::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border: 1px solid rgba(0, 243, 255, 0.22);
+  box-shadow: inset 0 0 54px rgba(0, 243, 255, 0.10);
+}
+
+.login-visual-glow {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 18%;
+  z-index: 1;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.72), transparent);
+  box-shadow: 0 0 34px rgba(0, 243, 255, 0.36);
+}
+
 .login-schematic {
   position: absolute;
   inset: 36px 36px auto auto;
+  z-index: 3;
   width: 280px;
   height: 180px;
   border: 1px solid rgba(52, 213, 255, 0.24);
@@ -2206,6 +2261,7 @@ select.form-control option {
 
 .login-visual-copy {
   position: absolute;
+  z-index: 3;
   left: 36px;
   right: 36px;
   bottom: 36px;

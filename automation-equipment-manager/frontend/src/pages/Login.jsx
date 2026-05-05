@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { login } from "../api/client.js";
 import logoUrl from "../assets/huadeng-logo.svg";
+import DataRainCanvas from "../components/DataRainCanvas.jsx";
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -26,7 +27,9 @@ export default function Login({ onLogin }) {
 
   return (
     <main className="login-page">
-      <section className="login-visual" aria-hidden="true">
+      <section className="login-visual login-data-stream" aria-hidden="true">
+        <DataRainCanvas />
+        <div className="login-visual-glow" />
         <div className="login-schematic">
           <span />
           <span />
