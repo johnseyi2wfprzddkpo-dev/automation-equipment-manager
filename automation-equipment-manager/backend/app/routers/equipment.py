@@ -43,7 +43,23 @@ def _extract_outsource_company(location: str | None, factory_area: str | None):
 def _create_excel_import_business_logs(db: Session, equipment, record: schemas.EquipmentCreate, meta: dict):
     operator = meta.get("registrar") or record.manager
     today = date.today()
-    result = {"outsource_created": 0, "repair_created": 0}
+    result = {"outsource_created": 0, "repair_created": 0, "production_created": 0}
+
+    if record.current_status == "生产中":
+        crud.create_production_log(
+            db,
+            equipment,
+            schemas.EquipmentProductionCreate(
+                product_code=record.current_product_code or record.equipment_code,
+                product_name=record.equipment_name,
+                department=meta.get("department"),
+                start_time=meta.get("updated_at") or meta.get("created_at"),
+                operator=operator,
+                production_status="生产中",
+                remark="Excel批量导入自动生成生产记录",
+            ),
+        )
+        result["production_created"] = 1
 
     if record.current_status == "外发中":
         crud.create_outsource_log(
@@ -182,6 +198,7 @@ async def import_equipment_ledger_excel(
     parsed = parse_equipment_ledger_import(await file.read())
     created_count = 0
     duplicate_skipped_count = 0
+    production_created_count = 0
     outsource_created_count = 0
     repair_created_count = 0
     failures = list(parsed["failures"])
@@ -198,6 +215,7 @@ async def import_equipment_ledger_excel(
         try:
             equipment = crud.create_equipment(db, record)
             business_logs = _create_excel_import_business_logs(db, equipment, record, meta)
+            production_created_count += business_logs["production_created"]
             outsource_created_count += business_logs["outsource_created"]
             repair_created_count += business_logs["repair_created"]
             created_count += 1
@@ -211,6 +229,7 @@ async def import_equipment_ledger_excel(
         "updated_count": 0,
         "skipped_count": parsed["skipped_count"] + duplicate_skipped_count,
         "duplicate_skipped_count": duplicate_skipped_count,
+        "production_created_count": production_created_count,
         "outsource_created_count": outsource_created_count,
         "repair_created_count": repair_created_count,
         "failed_count": len(failures),

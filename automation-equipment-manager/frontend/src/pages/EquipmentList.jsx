@@ -93,7 +93,7 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
       const result = await importEquipmentLedgerExcel(importFile);
       setImportResult(result);
       setMessage(
-        `导入完成：新增 ${result.created_count} 条，外发记录 ${result.outsource_created_count ?? 0} 条，维修记录 ${result.repair_created_count ?? 0} 条，重复跳过 ${result.duplicate_skipped_count ?? 0} 条，失败 ${result.failed_count} 条。`
+        `导入完成：新增 ${result.created_count} 条，生产记录 ${result.production_created_count ?? 0} 条，外发记录 ${result.outsource_created_count ?? 0} 条，维修记录 ${result.repair_created_count ?? 0} 条，重复跳过 ${result.duplicate_skipped_count ?? 0} 条，失败 ${result.failed_count} 条。`
       );
       loadEquipment();
     } catch (err) {
@@ -219,6 +219,7 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
                 <div className="import-stats-grid">
                   <article><span>总行数</span><strong>{importResult.total_count}</strong></article>
                   <article><span>新增</span><strong>{importResult.created_count}</strong></article>
+                  <article><span>生产记录</span><strong>{importResult.production_created_count ?? 0}</strong></article>
                   <article><span>外发记录</span><strong>{importResult.outsource_created_count ?? 0}</strong></article>
                   <article><span>维修记录</span><strong>{importResult.repair_created_count ?? 0}</strong></article>
                   <article><span>重复跳过</span><strong>{importResult.duplicate_skipped_count ?? 0}</strong></article>
@@ -259,14 +260,14 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
         </div>
       )}
 
-      <section className="panel table-panel">
+      <section className="panel table-panel equipment-table-panel">
         {loading ? (
           <div className="empty-state">正在加载设备台账...</div>
         ) : equipment.length === 0 ? (
           <div className="empty-state">暂无设备，请先新增一台设备。</div>
         ) : (
           <div className="table-wrap">
-            <table className="data-table">
+            <table className="data-table equipment-table">
               <thead>
                 <tr>
                   <th>设备编号</th>
@@ -283,17 +284,21 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
               <tbody>
                 {equipment.map((item) => (
                   <tr key={item.id}>
-                    <td>{item.equipment_code}</td>
-                    <td>{item.equipment_name}</td>
-                    <td>{item.equipment_type}</td>
-                    <td>
+                    <td className="code-cell">{item.equipment_code}</td>
+                    <td className="name-cell">{item.equipment_name}</td>
+                    <td className="type-cell">{item.equipment_type}</td>
+                    <td className="status-cell">
                       <StatusBadge>{item.current_status}</StatusBadge>
                     </td>
-                    <td>{item.current_location || "-"}</td>
-                    <td>{item.current_product_code || "-"}</td>
-                    <td>{item.manager || "-"}</td>
-                    <td>{formatDateTime(item.updated_at)}</td>
-                    <td>
+                    <td className="location-cell" title={item.current_location || "-"}>
+                      {item.current_location || "-"}
+                    </td>
+                    <td className="product-cell" title={item.current_product_code || "-"}>
+                      {item.current_product_code || "-"}
+                    </td>
+                    <td className="manager-cell">{item.manager || "-"}</td>
+                    <td className="time-cell">{formatDateTime(item.updated_at)}</td>
+                    <td className="action-cell">
                       <div className="action-row">
                         <button className="text-button" onClick={() => onView(item.id)} type="button">
                           详情

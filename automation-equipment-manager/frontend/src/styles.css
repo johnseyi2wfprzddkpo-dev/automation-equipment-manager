@@ -1560,6 +1560,109 @@ select.form-control option {
   color: #ffa2aa;
 }
 
+.equipment-table-panel {
+  padding: 12px 18px 18px;
+}
+
+.equipment-table {
+  min-width: 1320px;
+  table-layout: fixed;
+}
+
+.equipment-table th,
+.equipment-table td {
+  height: 56px;
+  padding: 10px 14px;
+  line-height: 1.35;
+}
+
+.equipment-table th:nth-child(1) {
+  width: 116px;
+}
+
+.equipment-table th:nth-child(2) {
+  width: 160px;
+}
+
+.equipment-table th:nth-child(3) {
+  width: 130px;
+}
+
+.equipment-table th:nth-child(4) {
+  width: 92px;
+}
+
+.equipment-table th:nth-child(5) {
+  width: 260px;
+}
+
+.equipment-table th:nth-child(6) {
+  width: 96px;
+}
+
+.equipment-table th:nth-child(7) {
+  width: 86px;
+}
+
+.equipment-table th:nth-child(8) {
+  width: 150px;
+}
+
+.equipment-table th:nth-child(9) {
+  width: 206px;
+}
+
+.equipment-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.equipment-table .code-cell,
+.equipment-table .name-cell,
+.equipment-table .type-cell {
+  font-weight: 750;
+}
+
+.equipment-table .status-cell {
+  white-space: nowrap;
+}
+
+.equipment-table .status-badge {
+  min-width: 64px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.equipment-table .location-cell,
+.equipment-table .product-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.equipment-table .manager-cell,
+.equipment-table .time-cell,
+.equipment-table .action-cell {
+  white-space: nowrap;
+}
+
+.equipment-table .time-cell {
+  color: #b8cbe2;
+  font-variant-numeric: tabular-nums;
+}
+
+.equipment-table .action-row {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.equipment-table .text-button {
+  min-height: 24px;
+  padding: 0;
+  white-space: nowrap;
+}
+
 .empty-state {
   border-color: rgba(104, 176, 255, 0.28);
   background: rgba(255, 255, 255, 0.03);

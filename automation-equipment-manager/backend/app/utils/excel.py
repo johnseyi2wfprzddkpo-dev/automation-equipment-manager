@@ -228,6 +228,15 @@ def _normalize_datetime(value, row_number: int, column_name: str):
     raise HTTPException(status_code=400, detail=f"第 {row_number} 行 {column_name} 日期时间格式不正确，应为 YYYY-MM-DD HH:MM")
 
 
+def _normalize_datetime_or_none(value):
+    if value in [None, ""]:
+        return None
+    try:
+        return _normalize_datetime(value, 0, "")
+    except HTTPException:
+        return None
+
+
 def _normalize_text(value):
     if value in [None, ""]:
         return None
@@ -451,8 +460,11 @@ def parse_equipment_ledger_import(file_bytes: bytes):
                     "usage_status": _normalize_text(row_data["usage_status"]),
                     "current_factory_area": _normalize_text(row_data["current_factory_area"]),
                     "current_location": _normalize_text(row_data["current_location"]),
+                    "department": _normalize_text(row_data["department"]),
                     "registrar": _normalize_text(row_data["registrar"]),
                     "manager": _normalize_text(row_data["manager"]),
+                    "created_at": _normalize_datetime_or_none(row_data["created_at"]),
+                    "updated_at": _normalize_datetime_or_none(row_data["updated_at"]),
                 },
             })
         except Exception as exc:
