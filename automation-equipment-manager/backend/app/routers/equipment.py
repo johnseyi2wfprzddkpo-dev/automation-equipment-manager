@@ -1,4 +1,5 @@
 from sqlite3 import IntegrityError as SQLiteIntegrityError
+from datetime import date
 from pathlib import Path
 from uuid import uuid4
 
@@ -22,6 +23,59 @@ ALLOWED_IMAGE_TYPES = {
     "image/gif": ".gif",
 }
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
+
+def _extract_outsource_company(location: str | None, factory_area: str | None):
+    location = (location or "").strip()
+    factory_area = (factory_area or "").strip()
+    for separator in ["-", "－", "—", "–"]:
+        if separator in location:
+            company = location.split(separator, 1)[1].strip()
+            if company:
+                return company[:160]
+    if location:
+        return location[:160]
+    if factory_area:
+        return factory_area[:160]
+    return "外厂"
+
+
+def _create_excel_import_business_logs(db: Session, equipment, record: schemas.EquipmentCreate, meta: dict):
+    operator = meta.get("registrar") or record.manager
+    today = date.today()
+    result = {"outsource_created": 0, "repair_created": 0}
+
+    if record.current_status == "外发中":
+        crud.create_outsource_log(
+            db,
+            equipment,
+            schemas.EquipmentOutsourceCreate(
+                outsource_company=_extract_outsource_company(meta.get("current_location"), meta.get("current_factory_area")),
+                outsource_reason="Excel导入识别为外发中",
+                outsource_date=today,
+                expected_return_date=today,
+                operator=operator,
+                remark="Excel批量导入自动生成外发记录",
+            ),
+        )
+        result["outsource_created"] = 1
+
+    if record.current_status == "维修中":
+        crud.create_repair_log(
+            db,
+            equipment,
+            schemas.EquipmentRepairCreate(
+                issue_description="Excel导入识别为维修中",
+                issue_level="一般",
+                reporter=record.manager,
+                handler=record.manager,
+                repair_status="待处理",
+                remark="Excel批量导入自动生成维修异常记录",
+            ),
+        )
+        result["repair_created"] = 1
+
+    return result
 
 
 @router.get("/statuses")
@@ -128,18 +182,24 @@ async def import_equipment_ledger_excel(
     parsed = parse_equipment_ledger_import(await file.read())
     created_count = 0
     duplicate_skipped_count = 0
+    outsource_created_count = 0
+    repair_created_count = 0
     failures = list(parsed["failures"])
 
     for item in parsed["records"]:
         row_number = item["row_number"]
         record = item["equipment"]
+        meta = item.get("meta", {})
         existing = crud.get_equipment_by_code(db, record.equipment_code)
         if existing:
             duplicate_skipped_count += 1
             continue
 
         try:
-            crud.create_equipment(db, record)
+            equipment = crud.create_equipment(db, record)
+            business_logs = _create_excel_import_business_logs(db, equipment, record, meta)
+            outsource_created_count += business_logs["outsource_created"]
+            repair_created_count += business_logs["repair_created"]
             created_count += 1
         except Exception as exc:
             db.rollback()
@@ -151,6 +211,8 @@ async def import_equipment_ledger_excel(
         "updated_count": 0,
         "skipped_count": parsed["skipped_count"] + duplicate_skipped_count,
         "duplicate_skipped_count": duplicate_skipped_count,
+        "outsource_created_count": outsource_created_count,
+        "repair_created_count": repair_created_count,
         "failed_count": len(failures),
         "failures": failures,
     }

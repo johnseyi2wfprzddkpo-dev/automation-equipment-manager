@@ -444,7 +444,17 @@ def parse_equipment_ledger_import(file_bytes: bytes):
         }
 
         try:
-            records.append({"row_number": row_number, "equipment": schemas.EquipmentCreate(**payload)})
+            records.append({
+                "row_number": row_number,
+                "equipment": schemas.EquipmentCreate(**payload),
+                "meta": {
+                    "usage_status": _normalize_text(row_data["usage_status"]),
+                    "current_factory_area": _normalize_text(row_data["current_factory_area"]),
+                    "current_location": _normalize_text(row_data["current_location"]),
+                    "registrar": _normalize_text(row_data["registrar"]),
+                    "manager": _normalize_text(row_data["manager"]),
+                },
+            })
         except Exception as exc:
             failures.append({"row_number": row_number, "reason": f"数据校验失败：{exc}"})
 
