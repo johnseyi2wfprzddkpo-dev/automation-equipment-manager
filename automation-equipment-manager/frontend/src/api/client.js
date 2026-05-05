@@ -104,6 +104,19 @@ export function createUser(payload) {
   });
 }
 
+export function updateUser(id, payload) {
+  return request(`/api/auth/users/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteUser(id) {
+  return request(`/api/auth/users/${id}`, {
+    method: "DELETE",
+  });
+}
+
 export function clearEquipmentData() {
   return request("/api/admin/clear-equipment-data", {
     method: "DELETE",

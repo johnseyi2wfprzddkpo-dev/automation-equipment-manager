@@ -473,6 +473,19 @@ class UserCreate(BaseModel):
         return value
 
 
+class UserUpdate(BaseModel):
+    full_name: str | None = Field(default=None, max_length=120)
+    role: str
+    is_active: bool = True
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, value: str):
+        if value not in USER_ROLES:
+            raise ValueError(f"角色必须是：{', '.join(USER_ROLES)}")
+        return value
+
+
 class UserRead(BaseModel):
     id: int
     username: str

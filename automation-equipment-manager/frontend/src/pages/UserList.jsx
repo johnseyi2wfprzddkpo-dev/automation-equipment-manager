@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { clearEquipmentData, createUser, getUsers } from "../api/client.js";
+import { clearEquipmentData, createUser, deleteUser, getUsers, updateUser } from "../api/client.js";
 import Pagination, { getTotalPages, paginateItems } from "../components/Pagination.jsx";
 import { formatDateTime } from "../utils/datetime.js";
 
@@ -8,6 +8,11 @@ const roles = ["管理员", "技术员", "生产人员", "领导"];
 const emptyForm = {
   username: "",
   password: "",
+  full_name: "",
+  role: "领导",
+  is_active: true,
+};
+const emptyEditForm = {
   full_name: "",
   role: "领导",
   is_active: true,
@@ -25,7 +30,13 @@ export default function UserList() {
   const [clearResult, setClearResult] = useState(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [editingUserId, setEditingUserId] = useState(null);
+  const [editForm, setEditForm] = useState(emptyEditForm);
   const pagedUsers = useMemo(() => paginateItems(users, page, pageSize), [users, page, pageSize]);
+  const editingUser = useMemo(
+    () => users.find((user) => user.id === editingUserId),
+    [users, editingUserId],
+  );
 
   function loadUsers() {
     setError("");
@@ -49,6 +60,26 @@ export default function UserList() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  function updateEditField(field, value) {
+    setEditForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function startEdit(user) {
+    setError("");
+    setMessage("");
+    setEditingUserId(user.id);
+    setEditForm({
+      full_name: user.full_name || "",
+      role: user.role,
+      is_active: user.is_active,
+    });
+  }
+
+  function cancelEdit() {
+    setEditingUserId(null);
+    setEditForm(emptyEditForm);
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
@@ -64,6 +95,68 @@ export default function UserList() {
       });
       setForm(emptyForm);
       setMessage("用户已创建。");
+      loadUsers();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleUpdateUser(event) {
+    event.preventDefault();
+    if (!editingUserId) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    try {
+      await updateUser(editingUserId, {
+        full_name: editForm.full_name || null,
+        role: editForm.role,
+        is_active: editForm.is_active,
+      });
+      setMessage("用户信息已更新。");
+      cancelEdit();
+      loadUsers();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleToggleUser(user) {
+    const actionText = user.is_active ? "禁用" : "启用";
+    if (!window.confirm(`确认${actionText}用户「${user.username}」？`)) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    try {
+      await updateUser(user.id, {
+        full_name: user.full_name || null,
+        role: user.role,
+        is_active: !user.is_active,
+      });
+      setMessage(`用户已${actionText}。`);
+      loadUsers();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleDeleteUser(user) {
+    if (!window.confirm(`确认删除用户「${user.username}」？该操作不能在系统内撤销。`)) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    try {
+      await deleteUser(user.id);
+      setMessage("用户已删除。");
+      if (editingUserId === user.id) {
+        cancelEdit();
+      }
       loadUsers();
     } catch (err) {
       setError(err.message);
@@ -140,6 +233,44 @@ export default function UserList() {
         </div>
       </form>
 
+      {editingUser && (
+        <form className="panel form-panel user-edit-panel" onSubmit={handleUpdateUser}>
+          <div className="panel-header">
+            <p className="panel-kicker">User Edit</p>
+            <h3>编辑用户：{editingUser.username}</h3>
+          </div>
+          <div className="form-grid">
+            <label>
+              用户名
+              <input className="form-control" value={editingUser.username} disabled />
+            </label>
+            <label>
+              姓名
+              <input className="form-control" value={editForm.full_name} onChange={(event) => updateEditField("full_name", event.target.value)} />
+            </label>
+            <label>
+              角色权限
+              <select className="form-control" value={editForm.role} onChange={(event) => updateEditField("role", event.target.value)}>
+                {roles.map((role) => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              状态
+              <select className="form-control" value={editForm.is_active ? "active" : "inactive"} onChange={(event) => updateEditField("is_active", event.target.value === "active")}>
+                <option value="active">启用</option>
+                <option value="inactive">禁用</option>
+              </select>
+            </label>
+          </div>
+          <div className="form-actions">
+            <button className="secondary-button" onClick={cancelEdit} type="button">取消</button>
+            <button className="primary-button" type="submit">保存修改</button>
+          </div>
+        </form>
+      )}
+
       <section className="panel danger-zone-panel">
         <div>
           <p className="panel-kicker">System Settings</p>
@@ -196,7 +327,7 @@ export default function UserList() {
 
       <section className="panel table-panel">
         <div className="table-wrap">
-          <table className="data-table">
+          <table className="data-table user-table">
             <thead>
               <tr>
                 <th>用户名</th>
@@ -204,6 +335,7 @@ export default function UserList() {
                 <th>角色</th>
                 <th>状态</th>
                 <th>创建时间</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -214,6 +346,16 @@ export default function UserList() {
                   <td>{user.role}</td>
                   <td>{user.is_active ? "启用" : "停用"}</td>
                   <td>{formatDateTime(user.created_at)}</td>
+                  <td>
+                    <div className="action-row user-action-row">
+                      <button className="text-button" onClick={() => startEdit(user)} type="button">编辑</button>
+                      <button className="text-button" onClick={() => startEdit(user)} type="button">修改权限</button>
+                      <button className="text-button" onClick={() => handleToggleUser(user)} type="button">
+                        {user.is_active ? "禁用" : "启用"}
+                      </button>
+                      <button className="text-button danger" onClick={() => handleDeleteUser(user)} type="button">删除</button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

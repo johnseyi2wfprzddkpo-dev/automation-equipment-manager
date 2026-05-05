@@ -638,6 +638,19 @@ textarea.form-control {
   align-items: center;
 }
 
+.user-edit-panel {
+  border-color: rgba(52, 213, 255, 0.32);
+  background:
+    linear-gradient(90deg, rgba(52, 213, 255, 0.08), transparent 52%),
+    var(--surface, #ffffff);
+}
+
+.user-action-row {
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
 .pagination-bar {
   display: flex;
   align-items: center;
@@ -2809,6 +2822,13 @@ select.form-control option {
   .data-table td:nth-child(8)::before { content: "时间"; }
   .data-table td:nth-child(9)::before { content: "操作"; }
   .data-table td:nth-child(10)::before { content: "备注"; }
+
+  .user-table td:nth-child(1)::before { content: "用户名"; }
+  .user-table td:nth-child(2)::before { content: "姓名"; }
+  .user-table td:nth-child(3)::before { content: "角色"; }
+  .user-table td:nth-child(4)::before { content: "状态"; }
+  .user-table td:nth-child(5)::before { content: "创建时间"; }
+  .user-table td:nth-child(6)::before { content: "操作"; }
 
   .equipment-table td:nth-child(1)::before { content: "设备编号"; }
   .equipment-table td:nth-child(2)::before { content: "设备名称"; }
