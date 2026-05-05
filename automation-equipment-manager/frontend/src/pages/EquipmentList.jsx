@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   deleteEquipment,
@@ -10,6 +10,7 @@ import {
 } from "../api/client.js";
 import SearchBar from "../components/SearchBar.jsx";
 import EquipmentQrCode from "../components/EquipmentQrCode.jsx";
+import Pagination, { getTotalPages, paginateItems } from "../components/Pagination.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
 import { formatDateTime } from "../utils/datetime.js";
 
@@ -31,12 +32,18 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
   const [importFile, setImportFile] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const pagedEquipment = useMemo(() => paginateItems(equipment, page, pageSize), [equipment, page, pageSize]);
 
   function loadEquipment() {
     setLoading(true);
     setError("");
     getEquipmentList(filters)
-      .then(setEquipment)
+      .then((data) => {
+        setEquipment(data);
+        setPage(1);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }
@@ -44,6 +51,10 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
   useEffect(() => {
     loadEquipment();
   }, []);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, getTotalPages(equipment.length, pageSize)));
+  }, [equipment.length, pageSize]);
 
   async function handleDelete(id) {
     const ok = window.confirm("确定要停用这台设备吗？");
@@ -282,7 +293,7 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
                 </tr>
               </thead>
               <tbody>
-                {equipment.map((item) => (
+                {pagedEquipment.map((item) => (
                   <tr key={item.id}>
                     <td className="code-cell">{item.equipment_code}</td>
                     <td className="name-cell">{item.equipment_name}</td>
@@ -318,6 +329,16 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={equipment.length}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </section>

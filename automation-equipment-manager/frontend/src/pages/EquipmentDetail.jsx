@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   createOutsourceLog,
@@ -18,6 +18,7 @@ import {
   updateEquipmentStatus,
 } from "../api/client.js";
 import EquipmentQrCode from "../components/EquipmentQrCode.jsx";
+import Pagination, { getTotalPages, paginateItems } from "../components/Pagination.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
 import { formatDate, formatDateTime, toDateInput } from "../utils/datetime.js";
 
@@ -78,6 +79,12 @@ export default function EquipmentDetail({ equipmentId, onBack, onEdit }) {
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [productionPage, setProductionPage] = useState(1);
+  const [productionPageSize, setProductionPageSize] = useState(10);
+  const pagedProductionLogs = useMemo(
+    () => paginateItems(productionLogs, productionPage, productionPageSize),
+    [productionLogs, productionPage, productionPageSize],
+  );
 
   function loadDetail() {
     if (!equipmentId) {
@@ -101,6 +108,7 @@ export default function EquipmentDetail({ equipmentId, onBack, onEdit }) {
         setLocationLogs(locationData);
         setOutsourceLogs(outsourceData);
         setProductionLogs(productionData);
+        setProductionPage(1);
         setRepairLogs(repairData);
         setMaintenanceLogs(maintenanceData);
         setImages(imageData);
@@ -116,6 +124,10 @@ export default function EquipmentDetail({ equipmentId, onBack, onEdit }) {
   useEffect(() => {
     loadDetail();
   }, [equipmentId]);
+
+  useEffect(() => {
+    setProductionPage((current) => Math.min(current, getTotalPages(productionLogs.length, productionPageSize)));
+  }, [productionLogs.length, productionPageSize]);
 
   function normalizeForm(form) {
     const payload = {};
@@ -799,7 +811,7 @@ export default function EquipmentDetail({ equipmentId, onBack, onEdit }) {
                 </tr>
               </thead>
               <tbody>
-                {productionLogs.map((log) => (
+                {pagedProductionLogs.map((log) => (
                   <tr key={log.id}>
                     <td>{log.product_code}</td>
                     <td>{valueOrDash(log.product_name)}</td>
@@ -813,6 +825,16 @@ export default function EquipmentDetail({ equipmentId, onBack, onEdit }) {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              page={productionPage}
+              pageSize={productionPageSize}
+              total={productionLogs.length}
+              onPageChange={setProductionPage}
+              onPageSizeChange={(size) => {
+                setProductionPageSize(size);
+                setProductionPage(1);
+              }}
+            />
           </div>
         )}
       </section>

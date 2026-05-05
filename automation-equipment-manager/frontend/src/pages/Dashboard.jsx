@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getDashboardSummary, getDashboardUtilization, getHealth } from "../api/client.js";
+import Pagination, { getTotalPages, paginateItems } from "../components/Pagination.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
 import { formatDate, formatDateTime, toDateInput } from "../utils/datetime.js";
 
@@ -21,6 +22,13 @@ export default function Dashboard({ onNavigate }) {
   const [utilization, setUtilization] = useState(null);
   const [utilizationError, setUtilizationError] = useState("");
   const [utilizationLoading, setUtilizationLoading] = useState(false);
+  const [utilizationPage, setUtilizationPage] = useState(1);
+  const [utilizationPageSize, setUtilizationPageSize] = useState(10);
+  const utilizationItems = useMemo(() => utilization?.items ?? [], [utilization]);
+  const pagedUtilizationItems = useMemo(
+    () => paginateItems(utilizationItems, utilizationPage, utilizationPageSize),
+    [utilizationItems, utilizationPage, utilizationPageSize],
+  );
 
   useEffect(() => {
     getHealth()
@@ -36,7 +44,10 @@ export default function Dashboard({ onNavigate }) {
     setUtilizationLoading(true);
     setUtilizationError("");
     getDashboardUtilization(utilizationFilters)
-      .then(setUtilization)
+      .then((data) => {
+        setUtilization(data);
+        setUtilizationPage(1);
+      })
       .catch((err) => {
         setUtilization(null);
         setUtilizationError(err.message);
@@ -47,6 +58,10 @@ export default function Dashboard({ onNavigate }) {
   useEffect(() => {
     loadUtilization();
   }, []);
+
+  useEffect(() => {
+    setUtilizationPage((current) => Math.min(current, getTotalPages(utilizationItems.length, utilizationPageSize)));
+  }, [utilizationItems.length, utilizationPageSize]);
 
   const maintenanceAlertCount = summary ? (summary.maintenance_overdue_count + summary.maintenance_due_count + summary.maintenance_upcoming_count) : "-";
   const statCards = [
@@ -158,7 +173,7 @@ export default function Dashboard({ onNavigate }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {utilization.items.map((item) => (
+                      {pagedUtilizationItems.map((item) => (
                         <tr key={item.equipment_id}>
                           <td>{item.equipment_code}</td>
                           <td>{item.equipment_name}</td>
@@ -180,6 +195,16 @@ export default function Dashboard({ onNavigate }) {
                       ))}
                     </tbody>
                   </table>
+                  <Pagination
+                    page={utilizationPage}
+                    pageSize={utilizationPageSize}
+                    total={utilizationItems.length}
+                    onPageChange={setUtilizationPage}
+                    onPageSizeChange={(size) => {
+                      setUtilizationPageSize(size);
+                      setUtilizationPage(1);
+                    }}
+                  />
                 </div>
               )}
             </>

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.database import Base, UPLOAD_DIR, engine
-from app.routers import admin, auth, dashboard, equipment, location, maintenance, outsource, production, repair, status
+from app.routers import admin, auth, benefit, dashboard, equipment, location, maintenance, outsource, production, repair, status
 from app.security import hash_password
 
 
@@ -69,6 +69,7 @@ app.include_router(production.router, prefix="/api")
 app.include_router(repair.router, prefix="/api")
 app.include_router(maintenance.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
+app.include_router(benefit.router, prefix="/api")
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   downloadBlob,
@@ -8,6 +8,7 @@ import {
   importOutsourceExcel,
   returnOutsourceLog,
 } from "../api/client.js";
+import Pagination, { getTotalPages, paginateItems } from "../components/Pagination.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
 import { formatDate, toDateInput } from "../utils/datetime.js";
 
@@ -17,12 +18,18 @@ export default function OutsourceList() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const pagedLogs = useMemo(() => paginateItems(logs, page, pageSize), [logs, page, pageSize]);
 
   function loadLogs() {
     setLoading(true);
     setError("");
     getOutsourceList()
-      .then(setLogs)
+      .then((data) => {
+        setLogs(data);
+        setPage(1);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }
@@ -30,6 +37,10 @@ export default function OutsourceList() {
   useEffect(() => {
     loadLogs();
   }, []);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, getTotalPages(logs.length, pageSize)));
+  }, [logs.length, pageSize]);
 
   function updateReturnForm(id, field, value) {
     setReturnForms((current) => ({
@@ -157,7 +168,7 @@ export default function OutsourceList() {
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log) => {
+                {pagedLogs.map((log) => {
                   const form = returnForms[log.id] ?? {
                     actual_return_date: toDateInput(),
                     new_status: "待用",
@@ -210,6 +221,16 @@ export default function OutsourceList() {
                 })}
               </tbody>
             </table>
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={logs.length}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </section>

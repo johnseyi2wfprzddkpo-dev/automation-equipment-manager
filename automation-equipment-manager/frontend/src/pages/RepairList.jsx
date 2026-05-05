@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   createRepairLog,
@@ -11,6 +11,7 @@ import {
   importRepairExcel,
   updateRepairLog,
 } from "../api/client.js";
+import Pagination, { getTotalPages, paginateItems } from "../components/Pagination.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
 import { formatDateTime } from "../utils/datetime.js";
 
@@ -53,11 +54,15 @@ export default function RepairList() {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const pagedLogs = useMemo(() => paginateItems(logs, page, pageSize), [logs, page, pageSize]);
 
   function loadData() {
     Promise.all([getRepairList(), getEquipmentList()])
       .then(([repairData, equipmentData]) => {
         setLogs(repairData);
+        setPage(1);
         setEquipment(equipmentData);
         if (!form.equipment_id && equipmentData.length > 0) {
           setForm((current) => ({ ...current, equipment_id: String(equipmentData[0].id) }));
@@ -69,6 +74,10 @@ export default function RepairList() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, getTotalPages(logs.length, pageSize)));
+  }, [logs.length, pageSize]);
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -283,7 +292,7 @@ export default function RepairList() {
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log) => (
+                {pagedLogs.map((log) => (
                   <tr key={log.id}>
                     <td>{log.equipment_code}</td>
                     <td>{log.equipment_name}</td>
@@ -303,6 +312,16 @@ export default function RepairList() {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={logs.length}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setPage(1);
+              }}
+            />
           </div>
         )}
       </section>

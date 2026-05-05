@@ -148,6 +148,30 @@ class EquipmentMaintenanceLog(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)
 
 
+class EquipmentBenefitAnalysisConfig(Base):
+    __tablename__ = "equipment_benefit_analysis_config"
+
+    id = Column(Integer, primary_key=True, index=True)
+    equipment_id = Column(Integer, ForeignKey("equipment.id"), index=True, nullable=False)
+    product_code = Column(String(120), nullable=False, index=True)
+    product_name = Column(String(160), nullable=True)
+    process_name = Column(String(160), nullable=False)
+    monthly_output_qty = Column(Integer, nullable=False, default=0)
+    investment_amount = Column(Float, nullable=False, default=0)
+    manual_minutes_per_unit = Column(Float, nullable=False)
+    manual_worker_count = Column(Float, nullable=False, default=1)
+    automation_minutes_per_unit = Column(Float, nullable=False)
+    automation_worker_count = Column(Float, nullable=False, default=1)
+    labor_cost_per_hour = Column(Float, nullable=False, default=0)
+    depreciation_months = Column(Integer, nullable=False, default=36)
+    monthly_maintenance_cost = Column(Float, nullable=False, default=0)
+    monthly_energy_cost = Column(Float, nullable=False, default=0)
+    remark = Column(Text, nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)
+
+
 class User(Base):
     __tablename__ = "users"
 

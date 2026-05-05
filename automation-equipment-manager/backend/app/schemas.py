@@ -404,6 +404,52 @@ class DashboardUtilization(BaseModel):
     items: list[EquipmentUtilizationItem]
 
 
+class BenefitConfigBase(BaseModel):
+    equipment_id: int
+    product_code: str = Field(..., min_length=1, max_length=120)
+    product_name: str | None = Field(default=None, max_length=160)
+    process_name: str = Field(..., min_length=1, max_length=160)
+    monthly_output_qty: int = Field(default=0, ge=0)
+    investment_amount: float = Field(default=0, ge=0)
+    manual_minutes_per_unit: float = Field(..., gt=0)
+    manual_worker_count: float = Field(default=1, gt=0)
+    automation_minutes_per_unit: float = Field(..., gt=0)
+    automation_worker_count: float = Field(default=1, gt=0)
+    labor_cost_per_hour: float = Field(default=0, ge=0)
+    depreciation_months: int = Field(default=36, gt=0)
+    monthly_maintenance_cost: float = Field(default=0, ge=0)
+    monthly_energy_cost: float = Field(default=0, ge=0)
+    remark: str | None = None
+    is_active: bool = True
+
+    @field_validator("product_code", "process_name")
+    @classmethod
+    def required_benefit_text(cls, value: str):
+        value = value.strip()
+        if not value:
+            raise ValueError("不能为空")
+        return value
+
+
+class BenefitConfigCreate(BenefitConfigBase):
+    pass
+
+
+class BenefitConfigUpdate(BenefitConfigBase):
+    pass
+
+
+class BenefitConfigRead(BenefitConfigBase):
+    id: int
+    equipment_code: str | None = None
+    equipment_name: str | None = None
+    equipment_type: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 USER_ROLES = ["管理员", "技术员", "生产人员", "领导"]
 
 

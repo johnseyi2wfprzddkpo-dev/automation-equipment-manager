@@ -409,6 +409,35 @@ export function getDashboardUtilization(filters = {}) {
   return request(`/api/dashboard/utilization${query ? `?${query}` : ""}`);
 }
 
+export function getBenefitAnalysis(filters = {}) {
+  const query = buildQuery(filters);
+  return request(`/api/benefit-analysis${query ? `?${query}` : ""}`);
+}
+
+export function getBenefitConfigs() {
+  return request("/api/benefit-analysis/configs");
+}
+
+export function createBenefitConfig(payload) {
+  return request("/api/benefit-analysis/configs", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateBenefitConfig(id, payload) {
+  return request(`/api/benefit-analysis/configs/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteBenefitConfig(id) {
+  return request(`/api/benefit-analysis/configs/${id}`, {
+    method: "DELETE",
+  });
+}
+
 export function normalizeEquipmentPayload(form) {
   const payload = {};
   Object.entries(form).forEach(([key, value]) => {

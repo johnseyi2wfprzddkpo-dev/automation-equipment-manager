@@ -7,6 +7,7 @@ const menuItems = [
   { key: "outsource", label: "外发管理", icon: "O" },
   { key: "repair", label: "维修异常", icon: "R" },
   { key: "maintenance", label: "保养记录", icon: "M" },
+  { key: "benefit", label: "效益分析", icon: "B" },
   { key: "users", label: "用户权限", icon: "U", adminOnly: true },
 ];
 

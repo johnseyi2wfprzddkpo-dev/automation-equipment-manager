@@ -638,6 +638,55 @@ textarea.form-control {
   align-items: center;
 }
 
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid rgba(113, 164, 218, 0.16);
+  padding: 14px 0 0;
+  margin-top: 14px;
+}
+
+.pagination-summary {
+  color: var(--muted, #7a8798);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pagination-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.pagination-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted, #7a8798);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pagination-size {
+  width: 96px;
+  min-height: 36px;
+  padding: 6px 8px;
+}
+
+.pagination-controls button {
+  min-height: 36px;
+  padding: 6px 10px;
+}
+
+.pagination-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
 .two-column-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1663,6 +1712,252 @@ select.form-control option {
   white-space: nowrap;
 }
 
+.benefit-hero {
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(47, 140, 255, 0.18), rgba(52, 213, 255, 0.08)),
+    var(--surface);
+}
+
+.benefit-filter-panel {
+  padding: 16px 18px;
+}
+
+.benefit-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.benefit-filter-grid label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.benefit-filter-grid label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.benefit-filter-grid .primary-button {
+  min-width: 104px;
+}
+
+.benefit-config-panel {
+  border-color: rgba(52, 213, 255, 0.18);
+}
+
+.benefit-config-form {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.benefit-config-form label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.benefit-config-form label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.benefit-wide-field {
+  grid-column: span 2;
+}
+
+.benefit-active-toggle {
+  min-height: 40px;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.benefit-stats-grid {
+  grid-template-columns: repeat(6, minmax(150px, 1fr));
+}
+
+.benefit-stats-grid .stat-card {
+  min-height: 148px;
+}
+
+.benefit-stats-grid .stat-card strong {
+  font-size: 28px;
+  word-break: break-word;
+}
+
+.benefit-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.benefit-ranking-table {
+  min-width: 620px;
+}
+
+.benefit-ranking-table td:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.benefit-ranking-table td:first-child strong {
+  color: var(--text-strong);
+}
+
+.benefit-ranking-table td:first-child span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.benefit-table-panel {
+  padding: 16px 18px 18px;
+}
+
+.benefit-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.benefit-table {
+  min-width: 1320px;
+  table-layout: fixed;
+}
+
+.benefit-config-table,
+.benefit-table {
+  border-spacing: 0;
+}
+
+.benefit-config-table tbody tr,
+.benefit-table tbody tr {
+  background: transparent;
+}
+
+.benefit-table th,
+.benefit-table td {
+  height: 58px;
+  padding: 11px 14px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.benefit-table th:nth-child(1) { width: 190px; }
+.benefit-table th:nth-child(2) { width: 160px; }
+.benefit-table th:nth-child(3) { width: 90px; }
+.benefit-table th:nth-child(4) { width: 90px; }
+.benefit-table th:nth-child(9) { width: 150px; }
+.benefit-table th:nth-child(10) { width: 112px; }
+
+.benefit-table td:first-child,
+.benefit-table td:nth-child(2),
+.benefit-config-table td:first-child,
+.benefit-config-table td:nth-child(2) {
+  display: table-cell;
+  min-width: 0;
+}
+
+.benefit-table td:first-child strong,
+.benefit-table td:nth-child(2) strong,
+.benefit-config-table td:first-child strong,
+.benefit-config-table td:nth-child(2) strong {
+  display: block;
+  overflow: hidden;
+  color: var(--text-strong);
+  font-size: 15px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.benefit-table td:first-child span,
+.benefit-table td:nth-child(2) span,
+.benefit-config-table td:first-child span,
+.benefit-config-table td:nth-child(2) span {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.benefit-config-table {
+  min-width: 1180px;
+  table-layout: fixed;
+}
+
+.benefit-config-table th,
+.benefit-config-table td {
+  height: 58px;
+  padding: 11px 14px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.benefit-config-table th:nth-child(1) { width: 240px; }
+.benefit-config-table th:nth-child(2) { width: 160px; }
+.benefit-config-table th:nth-child(3) { width: 110px; }
+.benefit-config-table th:nth-child(4) { width: 150px; }
+.benefit-config-table th:nth-child(5) { width: 150px; }
+.benefit-config-table th:nth-child(6) { width: 130px; }
+.benefit-config-table th:nth-child(7) { width: 90px; }
+.benefit-config-table th:nth-child(8) { width: 120px; }
+
+.benefit-config-table .status-badge {
+  justify-content: center;
+  min-width: 56px;
+  white-space: nowrap;
+}
+
+.benefit-config-table .action-row {
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+
+.benefit-positive {
+  color: #82f0bd !important;
+  font-weight: 800;
+}
+
+.benefit-negative {
+  color: #ffa2aa !important;
+  font-weight: 800;
+}
+
+.benefit-formula-panel {
+  border-color: rgba(52, 213, 255, 0.18);
+  background: linear-gradient(135deg, rgba(52, 213, 255, 0.06), rgba(255, 255, 255, 0.03));
+}
+
+.formula-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.formula-grid span {
+  border: 1px solid rgba(104, 176, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(5, 14, 27, 0.32);
+  color: #c4d4e7;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 10px 12px;
+}
+
 .empty-state {
   border-color: rgba(104, 176, 255, 0.28);
   background: rgba(255, 255, 255, 0.03);
@@ -2006,8 +2301,21 @@ select.form-control option {
   }
 
   .dashboard-grid,
-  .secondary-dashboard-grid {
+  .secondary-dashboard-grid,
+  .benefit-insight-grid {
     grid-template-columns: 1fr;
+  }
+
+  .benefit-filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .benefit-filter-grid .primary-button {
+    grid-column: span 3;
+  }
+
+  .benefit-config-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -2025,6 +2333,20 @@ select.form-control option {
   .topbar-meta {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .benefit-filter-grid,
+  .benefit-config-form,
+  .formula-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .benefit-filter-grid .primary-button {
+    grid-column: span 2;
+  }
+
+  .benefit-wide-field {
+    grid-column: span 2;
   }
 
   .login-page {
@@ -2060,12 +2382,562 @@ select.form-control option {
 
   .import-modal-grid,
   .mapping-list,
-  .import-stats-grid {
+  .import-stats-grid,
+  .benefit-filter-grid,
+  .benefit-config-form,
+  .formula-grid {
     grid-template-columns: 1fr;
+  }
+
+  .benefit-filter-grid .primary-button {
+    grid-column: auto;
+  }
+
+  .benefit-wide-field {
+    grid-column: auto;
   }
 
   .danger-zone-panel {
     align-items: stretch;
     flex-direction: column;
+  }
+}
+
+/* Responsive shell and mobile-first refinements */
+@media (max-width: 1024px) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 14px;
+  }
+
+  .brand {
+    margin-bottom: 14px;
+  }
+
+  .nav-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .nav-item {
+    min-height: 44px;
+  }
+
+  .user-panel {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    margin-top: 14px;
+  }
+
+  .main-content {
+    width: 100%;
+    max-width: 100%;
+    padding: 18px;
+  }
+
+  .topbar {
+    margin-bottom: 16px;
+  }
+
+  .filter-grid,
+  .form-grid,
+  .benefit-config-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-grid .secondary-button,
+  .benefit-config-form .primary-button {
+    width: 100%;
+  }
+
+  .scanner-panel,
+  .dashboard-grid,
+  .secondary-dashboard-grid,
+  .two-column-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid,
+  .benefit-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-width: 0;
+  }
+
+  .sidebar {
+    padding: 12px;
+  }
+
+  .brand {
+    align-items: center;
+    padding: 10px;
+  }
+
+  .brand-mark {
+    width: 50px;
+    height: 38px;
+  }
+
+  .brand-mark img {
+    width: 40px;
+    max-height: 28px;
+  }
+
+  .brand h1 {
+    max-width: none;
+    font-size: 13px;
+  }
+
+  .brand p {
+    font-size: 12px;
+  }
+
+  .nav-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .nav-item {
+    grid-template-columns: 28px minmax(0, 1fr);
+    min-height: 42px;
+    padding: 7px 8px;
+    font-size: 13px;
+  }
+
+  .nav-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+  }
+
+  .nav-item:hover,
+  .nav-item.active {
+    transform: none;
+  }
+
+  .user-panel {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .logout-button {
+    min-height: 42px;
+  }
+
+  .main-content {
+    padding: 12px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 12px;
+  }
+
+  .topbar h2 {
+    font-size: 20px;
+  }
+
+  .topbar-meta {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .topbar-user {
+    text-align: left;
+  }
+
+  .dashboard-page,
+  .page-stack {
+    gap: 14px;
+  }
+
+  .page-header,
+  .dashboard-hero,
+  .benefit-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 14px;
+  }
+
+  .page-header h2,
+  .login-heading h2 {
+    font-size: 22px;
+    line-height: 1.25;
+  }
+
+  .hero-subtitle {
+    line-height: 1.6;
+  }
+
+  .hero-status {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .page-header > .action-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .danger-button,
+  .file-button,
+  .text-button {
+    min-height: 42px;
+  }
+
+  .page-header > .action-row button,
+  .filter-grid button,
+  .form-actions button,
+  .scanner-manual button,
+  .benefit-config-form button {
+    width: 100%;
+  }
+
+  .panel,
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stats-grid,
+  .benefit-stats-grid,
+  .utilization-summary,
+  .quick-actions,
+  .import-modal-grid,
+  .mapping-list,
+  .import-stats-grid,
+  .benefit-filter-grid,
+  .benefit-config-form,
+  .formula-grid,
+  .filter-grid,
+  .form-grid,
+  .form-grid-tight,
+  .detail-grid,
+  .two-column-grid,
+  .scanner-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .benefit-wide-field,
+  .form-wide {
+    grid-column: auto;
+  }
+
+  .utilization-header,
+  .benefit-table-header,
+  .detail-title-row,
+  .danger-zone-panel,
+  .form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .utilization-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .utilization-filters .form-control,
+  .utilization-filters button {
+    width: 100%;
+  }
+
+  .login-page {
+    min-height: 100dvh;
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .login-card {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .login-brand img {
+    width: 66px;
+  }
+
+  .modal-backdrop {
+    align-items: start;
+    place-items: start center;
+    overflow-y: auto;
+    padding: 10px;
+  }
+
+  .modal-panel,
+  .import-modal,
+  .clear-data-modal,
+  .qr-modal {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+    padding: 14px;
+  }
+
+  .modal-header {
+    align-items: flex-start;
+  }
+
+  .qr-detail-panel .qr-card,
+  .qr-modal .qr-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .qr-detail-panel .qr-meta {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .scanner-frame video {
+    min-height: 240px;
+  }
+
+  .table-panel,
+  .equipment-table-panel,
+  .benefit-table-panel {
+    overflow: visible;
+    padding: 12px;
+  }
+
+  .table-wrap {
+    overflow: visible;
+  }
+
+  .data-table,
+  .equipment-table,
+  .outsource-table,
+  .utilization-table,
+  .maintenance-reminder-table,
+  .benefit-config-table,
+  .benefit-ranking-table,
+  .benefit-table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: auto;
+  }
+
+  .data-table thead {
+    display: none;
+  }
+
+  .data-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .data-table tr {
+    display: grid;
+    border: 1px solid rgba(113, 164, 218, 0.18);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.035);
+    padding: 10px 12px;
+  }
+
+  .data-table tbody tr:hover {
+    background: rgba(52, 213, 255, 0.05);
+  }
+
+  .data-table td,
+  .equipment-table td,
+  .benefit-table td,
+  .benefit-config-table td {
+    display: grid !important;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    border-bottom: 1px solid rgba(113, 164, 218, 0.12);
+    padding: 9px 0;
+    white-space: normal !important;
+    word-break: break-word;
+  }
+
+  .data-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .data-table td::before {
+    content: "信息";
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.45;
+  }
+
+  .data-table td:nth-child(1)::before { content: "项目"; }
+  .data-table td:nth-child(2)::before { content: "名称"; }
+  .data-table td:nth-child(3)::before { content: "类型"; }
+  .data-table td:nth-child(4)::before { content: "状态"; }
+  .data-table td:nth-child(5)::before { content: "位置"; }
+  .data-table td:nth-child(6)::before { content: "数值"; }
+  .data-table td:nth-child(7)::before { content: "负责人"; }
+  .data-table td:nth-child(8)::before { content: "时间"; }
+  .data-table td:nth-child(9)::before { content: "操作"; }
+  .data-table td:nth-child(10)::before { content: "备注"; }
+
+  .equipment-table td:nth-child(1)::before { content: "设备编号"; }
+  .equipment-table td:nth-child(2)::before { content: "设备名称"; }
+  .equipment-table td:nth-child(3)::before { content: "类型"; }
+  .equipment-table td:nth-child(4)::before { content: "状态"; }
+  .equipment-table td:nth-child(5)::before { content: "位置"; }
+  .equipment-table td:nth-child(6)::before { content: "当前货号"; }
+  .equipment-table td:nth-child(7)::before { content: "负责人"; }
+  .equipment-table td:nth-child(8)::before { content: "更新时间"; }
+  .equipment-table td:nth-child(9)::before { content: "操作"; }
+
+  .benefit-config-table td:nth-child(1)::before,
+  .benefit-table td:nth-child(1)::before,
+  .benefit-ranking-table td:nth-child(1)::before { content: "设备"; }
+  .benefit-config-table td:nth-child(2)::before,
+  .benefit-table td:nth-child(2)::before { content: "产品/工序"; }
+  .benefit-config-table td:nth-child(3)::before,
+  .benefit-table td:nth-child(3)::before { content: "月产量"; }
+  .benefit-config-table td:nth-child(4)::before { content: "人工节拍"; }
+  .benefit-config-table td:nth-child(5)::before { content: "自动化节拍"; }
+  .benefit-config-table td:nth-child(6)::before { content: "人工成本"; }
+  .benefit-config-table td:nth-child(7)::before { content: "状态"; }
+  .benefit-config-table td:nth-child(8)::before { content: "操作"; }
+  .benefit-table td:nth-child(4)::before { content: "节省人数"; }
+  .benefit-table td:nth-child(5)::before { content: "人工工时"; }
+  .benefit-table td:nth-child(6)::before { content: "自动化工时"; }
+  .benefit-table td:nth-child(7)::before { content: "节省工时"; }
+  .benefit-table td:nth-child(8)::before { content: "效率提升"; }
+  .benefit-table td:nth-child(9)::before { content: "月净收益"; }
+  .benefit-table td:nth-child(10)::before { content: "回本周期"; }
+  .benefit-ranking-table td:nth-child(2)::before { content: "结果"; }
+  .benefit-ranking-table td:nth-child(3)::before { content: "节省工时"; }
+  .benefit-ranking-table td:nth-child(4)::before { content: "效率提升"; }
+
+  .outsource-table td:nth-child(1)::before { content: "设备"; }
+  .outsource-table td:nth-child(2)::before { content: "外发单位"; }
+  .outsource-table td:nth-child(3)::before { content: "原因"; }
+  .outsource-table td:nth-child(4)::before { content: "外发日期"; }
+  .outsource-table td:nth-child(5)::before { content: "预计返回"; }
+  .outsource-table td:nth-child(6)::before { content: "实际返回"; }
+  .outsource-table td:nth-child(7)::before { content: "状态"; }
+  .outsource-table td:nth-child(8)::before { content: "操作"; }
+
+  .utilization-table td:nth-child(1)::before { content: "设备编号"; }
+  .utilization-table td:nth-child(2)::before { content: "设备名称"; }
+  .utilization-table td:nth-child(3)::before { content: "类型"; }
+  .utilization-table td:nth-child(4)::before { content: "状态"; }
+  .utilization-table td:nth-child(5)::before { content: "运行小时"; }
+  .utilization-table td:nth-child(6)::before { content: "生产记录"; }
+  .utilization-table td:nth-child(7)::before { content: "利用率"; }
+
+  .maintenance-reminder-table td:nth-child(1)::before { content: "设备编号"; }
+  .maintenance-reminder-table td:nth-child(2)::before { content: "设备名称"; }
+  .maintenance-reminder-table td:nth-child(3)::before { content: "保养类型"; }
+  .maintenance-reminder-table td:nth-child(4)::before { content: "下次保养"; }
+  .maintenance-reminder-table td:nth-child(5)::before { content: "状态"; }
+  .maintenance-reminder-table td:nth-child(6)::before { content: "保养人"; }
+
+  .equipment-table .action-row,
+  .benefit-config-table .action-row,
+  .data-table .action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .data-table .text-button {
+    min-height: 32px;
+    padding: 4px 0;
+  }
+
+  .pagination-bar {
+    align-items: stretch;
+    flex-direction: column;
+    padding-top: 12px;
+  }
+
+  .pagination-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .pagination-controls label {
+    grid-column: 1 / -1;
+    justify-content: space-between;
+  }
+
+  .pagination-size {
+    width: min(160px, 58%);
+  }
+
+  .pagination-controls button {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .utilization-cell {
+    grid-template-columns: 1fr;
+  }
+
+  .status-badge,
+  .equipment-table .status-badge,
+  .benefit-config-table .status-badge {
+    width: fit-content;
+    min-width: 0;
+  }
+
+  .detail-grid div,
+  .scanner-status,
+  .import-upload-card,
+  .import-help-card,
+  .import-result {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .nav-list,
+  .page-header > .action-row,
+  .stats-grid,
+  .benefit-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table td,
+  .equipment-table td,
+  .benefit-table td,
+  .benefit-config-table td {
+    grid-template-columns: 82px minmax(0, 1fr);
   }
 }

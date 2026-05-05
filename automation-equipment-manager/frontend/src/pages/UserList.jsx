@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { clearEquipmentData, createUser, getUsers } from "../api/client.js";
+import Pagination, { getTotalPages, paginateItems } from "../components/Pagination.jsx";
 import { formatDateTime } from "../utils/datetime.js";
 
 const roles = ["管理员", "技术员", "生产人员", "领导"];
@@ -22,17 +23,27 @@ export default function UserList() {
   const [clearConfirmText, setClearConfirmText] = useState("");
   const [clearing, setClearing] = useState(false);
   const [clearResult, setClearResult] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const pagedUsers = useMemo(() => paginateItems(users, page, pageSize), [users, page, pageSize]);
 
   function loadUsers() {
     setError("");
     getUsers()
-      .then(setUsers)
+      .then((data) => {
+        setUsers(data);
+        setPage(1);
+      })
       .catch((err) => setError(err.message));
   }
 
   useEffect(() => {
     loadUsers();
   }, []);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, getTotalPages(users.length, pageSize)));
+  }, [users.length, pageSize]);
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -196,7 +207,7 @@ export default function UserList() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {pagedUsers.map((user) => (
                 <tr key={user.id}>
                   <td>{user.username}</td>
                   <td>{user.full_name || "-"}</td>
@@ -207,6 +218,16 @@ export default function UserList() {
               ))}
             </tbody>
           </table>
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={users.length}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+          />
         </div>
       </section>
     </section>

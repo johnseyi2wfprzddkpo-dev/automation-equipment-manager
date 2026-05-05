@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { clearStoredToken, getMe, getStoredToken } from "./api/client.js";
 import Layout from "./components/Layout.jsx";
+import BenefitAnalysis from "./pages/BenefitAnalysis.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import EquipmentDetail from "./pages/EquipmentDetail.jsx";
 import EquipmentForm from "./pages/EquipmentForm.jsx";
@@ -105,6 +106,10 @@ export default function App() {
 
     if (page === "maintenance") {
       return <MaintenanceList />;
+    }
+
+    if (page === "benefit") {
+      return <BenefitAnalysis />;
     }
 
     if (page === "users") {

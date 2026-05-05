@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   createMaintenanceLog,
@@ -12,6 +12,7 @@ import {
   importMaintenanceExcel,
   updateMaintenanceLog,
 } from "../api/client.js";
+import Pagination, { getTotalPages, paginateItems } from "../components/Pagination.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
 import { formatDate } from "../utils/datetime.js";
 
@@ -50,13 +51,21 @@ export default function MaintenanceList() {
   const [reminders, setReminders] = useState([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [logPage, setLogPage] = useState(1);
+  const [logPageSize, setLogPageSize] = useState(10);
+  const [reminderPage, setReminderPage] = useState(1);
+  const [reminderPageSize, setReminderPageSize] = useState(10);
+  const pagedLogs = useMemo(() => paginateItems(logs, logPage, logPageSize), [logs, logPage, logPageSize]);
+  const pagedReminders = useMemo(() => paginateItems(reminders, reminderPage, reminderPageSize), [reminders, reminderPage, reminderPageSize]);
 
   function loadData() {
     Promise.all([getMaintenanceList(), getEquipmentList(), getMaintenanceReminders(7)])
       .then(([maintenanceData, equipmentData, reminderData]) => {
         setLogs(maintenanceData);
+        setLogPage(1);
         setEquipment(equipmentData);
         setReminders(reminderData);
+        setReminderPage(1);
         if (!form.equipment_id && equipmentData.length > 0) {
           setForm((current) => ({ ...current, equipment_id: String(equipmentData[0].id) }));
         }
@@ -67,6 +76,14 @@ export default function MaintenanceList() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setLogPage((current) => Math.min(current, getTotalPages(logs.length, logPageSize)));
+  }, [logs.length, logPageSize]);
+
+  useEffect(() => {
+    setReminderPage((current) => Math.min(current, getTotalPages(reminders.length, reminderPageSize)));
+  }, [reminders.length, reminderPageSize]);
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -215,7 +232,7 @@ export default function MaintenanceList() {
                 </tr>
               </thead>
               <tbody>
-                {reminders.map((item) => (
+                {pagedReminders.map((item) => (
                   <tr key={item.id}>
                     <td>{item.equipment_code}</td>
                     <td>{item.equipment_name}</td>
@@ -246,6 +263,16 @@ export default function MaintenanceList() {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              page={reminderPage}
+              pageSize={reminderPageSize}
+              total={reminders.length}
+              onPageChange={setReminderPage}
+              onPageSizeChange={(size) => {
+                setReminderPageSize(size);
+                setReminderPage(1);
+              }}
+            />
           </div>
         )}
       </section>
@@ -325,7 +352,7 @@ export default function MaintenanceList() {
                 </tr>
               </thead>
               <tbody>
-                {logs.map((log) => (
+                {pagedLogs.map((log) => (
                   <tr key={log.id}>
                     <td>{log.equipment_code}</td>
                     <td>{log.equipment_name}</td>
@@ -345,6 +372,16 @@ export default function MaintenanceList() {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              page={logPage}
+              pageSize={logPageSize}
+              total={logs.length}
+              onPageChange={setLogPage}
+              onPageSizeChange={(size) => {
+                setLogPageSize(size);
+                setLogPage(1);
+              }}
+            />
           </div>
         )}
       </section>
