@@ -81,6 +81,7 @@ export default function BenefitAnalysis() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [configPage, setConfigPage] = useState(1);
@@ -190,6 +191,7 @@ export default function BenefitAnalysis() {
     }
     setError("");
     setMessage("");
+    setDeletingId(config.id);
     try {
       await deleteBenefitConfig(config.id);
       setMessage("效益分析记录已删除。");
@@ -198,6 +200,8 @@ export default function BenefitAnalysis() {
       setDetailPage(1);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -331,7 +335,7 @@ export default function BenefitAnalysis() {
       </section>
 
       {loading ? (
-        <div className="empty-state">正在生成效益分析...</div>
+        <div className="empty-state loading-state">正在生成效益分析...</div>
       ) : !analysis ? (
         <div className="empty-state">暂无效益分析数据。</div>
       ) : (
@@ -375,7 +379,7 @@ export default function BenefitAnalysis() {
               </div>
               <span className="muted-text">共 {configs.length} 条记录</span>
             </div>
-            <ConfigTable configs={pagedConfigs} onDelete={handleDelete} onEdit={handleEdit} />
+            <ConfigTable configs={pagedConfigs} deletingId={deletingId} onDelete={handleDelete} onEdit={handleEdit} />
             <Pagination
               page={configPage}
               pageSize={configPageSize}
@@ -472,7 +476,7 @@ export default function BenefitAnalysis() {
   );
 }
 
-function ConfigTable({ configs, onDelete, onEdit }) {
+function ConfigTable({ configs, deletingId, onDelete, onEdit }) {
   if (configs.length === 0) {
     return <div className="empty-state">暂无效益分析记录。</div>;
   }
@@ -511,7 +515,9 @@ function ConfigTable({ configs, onDelete, onEdit }) {
               <td>
                 <div className="action-row">
                   <button className="text-button" onClick={() => onEdit(item)} type="button">编辑</button>
-                  <button className="text-button danger" onClick={() => onDelete(item)} type="button">删除</button>
+                  <button className="text-button danger" disabled={deletingId === item.id} onClick={() => onDelete(item)} type="button">
+                    {deletingId === item.id ? "删除中..." : "删除"}
+                  </button>
                 </div>
               </td>
             </tr>

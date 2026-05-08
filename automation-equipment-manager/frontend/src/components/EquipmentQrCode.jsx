@@ -55,6 +55,8 @@ export default function EquipmentQrCode({ equipment, size = 220 }) {
       <button className="secondary-button" onClick={handleDownload} type="button">
         下载二维码
       </button>
+  
+      
     </div>
   );
 }

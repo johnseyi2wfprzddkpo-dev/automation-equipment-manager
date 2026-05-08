@@ -32,6 +32,7 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
   const [importFile, setImportFile] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [actionLoading, setActionLoading] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const pagedEquipment = useMemo(() => paginateItems(equipment, page, pageSize), [equipment, page, pageSize]);
@@ -62,31 +63,40 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
       return;
     }
 
+    setActionLoading(`delete-${id}`);
     try {
       await deleteEquipment(id);
       loadEquipment();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
   async function handleDownloadTemplate() {
     setError("");
+    setActionLoading("template");
     try {
       const blob = await downloadEquipmentTemplate();
       downloadBlob(blob, "设备台账导入模板.xlsx");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
   async function handleExport() {
     setError("");
+    setActionLoading("export");
     try {
       const blob = await exportEquipmentExcel(filters);
       downloadBlob(blob, "设备台账导出.xlsx");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
@@ -122,16 +132,16 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
           <h2>设备列表</h2>
         </div>
         <div className="action-row">
-          <button className="secondary-button" onClick={handleDownloadTemplate} type="button">
-            下载模板
+          <button className="secondary-button" disabled={Boolean(actionLoading) || loading || importing} onClick={handleDownloadTemplate} type="button">
+            {actionLoading === "template" ? "下载中..." : "下载模板"}
           </button>
-          <button className="secondary-button" onClick={() => setImportModalOpen(true)} type="button">
+          <button className="secondary-button" disabled={loading || importing} onClick={() => setImportModalOpen(true)} type="button">
             Excel导入
           </button>
-          <button className="secondary-button" onClick={handleExport} type="button">
-            导出Excel
+          <button className="secondary-button" disabled={Boolean(actionLoading) || loading || importing} onClick={handleExport} type="button">
+            {actionLoading === "export" ? "导出中..." : "导出Excel"}
           </button>
-          <button className="primary-button" onClick={onCreate} type="button">
+          <button className="primary-button" disabled={loading || importing} onClick={onCreate} type="button">
             新增设备
           </button>
         </div>
@@ -167,8 +177,8 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
             onChange={(event) => setFilters((current) => ({ ...current, manager: event.target.value }))}
             placeholder="负责人"
           />
-          <button className="secondary-button" onClick={loadEquipment} type="button">
-            查询
+          <button className="secondary-button" disabled={loading} onClick={loadEquipment} type="button">
+            {loading ? "查询中..." : "查询"}
           </button>
         </div>
       </section>
@@ -273,7 +283,7 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
 
       <section className="panel table-panel equipment-table-panel">
         {loading ? (
-          <div className="empty-state">正在加载设备台账...</div>
+          <div className="empty-state loading-state">正在加载设备台账...</div>
         ) : equipment.length === 0 ? (
           <div className="empty-state">暂无设备，请先新增一台设备。</div>
         ) : (
@@ -320,8 +330,8 @@ export default function EquipmentList({ onCreate, onEdit, onView }) {
                         <button className="text-button" onClick={() => onEdit(item.id)} type="button">
                           编辑
                         </button>
-                        <button className="text-button danger" onClick={() => handleDelete(item.id)} type="button">
-                          停用
+                        <button className="text-button danger" disabled={actionLoading === `delete-${item.id}`} onClick={() => handleDelete(item.id)} type="button">
+                          {actionLoading === `delete-${item.id}` ? "处理中..." : "停用"}
                         </button>
                       </div>
                     </td>

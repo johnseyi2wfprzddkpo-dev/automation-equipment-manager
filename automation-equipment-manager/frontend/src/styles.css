@@ -16,6 +16,31 @@ body {
   min-height: 100vh;
 }
 
+.global-loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.global-loading-bar.active {
+  opacity: 1;
+}
+
+.global-loading-bar span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #2f8cff, #00f3ff);
+  box-shadow: 0 0 18px rgba(0, 243, 255, 0.72);
+  transition: width 0.22s ease;
+}
+
 button,
 input,
 select,
@@ -376,6 +401,31 @@ textarea {
   text-align: center;
 }
 
+.loading-state {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  min-height: 120px;
+}
+
+.loading-state::before {
+  content: "";
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(0, 243, 255, 0.18);
+  border-top-color: #00f3ff;
+  border-radius: 50%;
+  animation: loading-spin 0.82s linear infinite;
+  box-shadow: 0 0 18px rgba(0, 243, 255, 0.22);
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -429,6 +479,11 @@ textarea {
 .primary-button:disabled {
   cursor: not-allowed;
   opacity: 0.68;
+}
+
+button:disabled,
+.file-button.disabled {
+  cursor: not-allowed;
 }
 
 .secondary-button {
@@ -573,6 +628,11 @@ textarea {
   background: #ffffff;
   color: #172033;
   padding: 8px 10px;
+}
+
+.form-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
 }
 
 textarea.form-control {

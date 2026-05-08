@@ -54,11 +54,16 @@ export default function RepairList() {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [actionLoading, setActionLoading] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const pagedLogs = useMemo(() => paginateItems(logs, page, pageSize), [logs, page, pageSize]);
 
   function loadData() {
+    setLoading(true);
+    setError("");
     Promise.all([getRepairList(), getEquipmentList()])
       .then(([repairData, equipmentData]) => {
         setLogs(repairData);
@@ -68,7 +73,8 @@ export default function RepairList() {
           setForm((current) => ({ ...current, equipment_id: String(equipmentData[0].id) }));
         }
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }
 
   useEffect(() => {
@@ -105,6 +111,7 @@ export default function RepairList() {
     setError("");
     setMessage("");
 
+    setSaving(true);
     try {
       const payload = normalizeRepair(form);
       if (editingId) {
@@ -119,26 +126,34 @@ export default function RepairList() {
       loadData();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSaving(false);
     }
   }
 
   async function handleDownloadTemplate() {
     setError("");
+    setActionLoading("template");
     try {
       const blob = await downloadRepairTemplate();
       downloadBlob(blob, "维修异常导入模板.xlsx");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
   async function handleExport() {
     setError("");
+    setActionLoading("export");
     try {
       const blob = await exportRepairExcel();
       downloadBlob(blob, "维修异常导出.xlsx");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
@@ -151,12 +166,15 @@ export default function RepairList() {
 
     setError("");
     setMessage("");
+    setActionLoading("import");
     try {
       const result = await importRepairExcel(file);
       setMessage(`导入完成：新增 ${result.created_count} 条，跳过 ${result.skipped_count} 条。`);
       loadData();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
@@ -168,6 +186,7 @@ export default function RepairList() {
 
     setError("");
     setMessage("");
+    setActionLoading(`delete-${log.id}`);
     try {
       await deleteRepairLog(log.id);
       if (editingId === log.id) {
@@ -178,6 +197,8 @@ export default function RepairList() {
       loadData();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
@@ -189,15 +210,15 @@ export default function RepairList() {
           <h2>维修异常记录</h2>
         </div>
         <div className="action-row">
-          <button className="secondary-button" onClick={handleDownloadTemplate} type="button">
-            下载模板
+          <button className="secondary-button" disabled={Boolean(actionLoading) || loading || saving} onClick={handleDownloadTemplate} type="button">
+            {actionLoading === "template" ? "下载中..." : "下载模板"}
           </button>
-          <label className="file-button">
-            导入Excel
-            <input accept=".xlsx" onChange={handleImport} type="file" />
+          <label className={`file-button ${actionLoading || loading || saving ? "disabled" : ""}`}>
+            {actionLoading === "import" ? "导入中..." : "导入Excel"}
+            <input accept=".xlsx" disabled={Boolean(actionLoading) || loading || saving} onChange={handleImport} type="file" />
           </label>
-          <button className="secondary-button" onClick={handleExport} type="button">
-            导出Excel
+          <button className="secondary-button" disabled={Boolean(actionLoading) || loading || saving} onClick={handleExport} type="button">
+            {actionLoading === "export" ? "导出中..." : "导出Excel"}
           </button>
         </div>
       </div>
@@ -268,12 +289,16 @@ export default function RepairList() {
         </div>
         <div className="form-actions">
           {editingId && <button className="secondary-button" type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }}>取消编辑</button>}
-          <button className="primary-button" type="submit">{editingId ? "保存修改" : "新增维修记录"}</button>
+          <button className="primary-button" disabled={saving || loading} type="submit">
+            {saving ? "保存中..." : editingId ? "保存修改" : "新增维修记录"}
+          </button>
         </div>
       </form>
 
       <section className="panel table-panel">
-        {logs.length === 0 ? (
+        {loading ? (
+          <div className="empty-state loading-state">正在加载维修异常记录...</div>
+        ) : logs.length === 0 ? (
           <div className="empty-state">暂无维修异常记录。</div>
         ) : (
           <div className="table-wrap">
@@ -305,7 +330,9 @@ export default function RepairList() {
                     <td>
                       <div className="action-row">
                         <button className="text-button" type="button" onClick={() => startEdit(log)}>编辑</button>
-                        <button className="text-button danger" type="button" onClick={() => handleDelete(log)}>删除</button>
+                        <button className="text-button danger" disabled={actionLoading === `delete-${log.id}`} type="button" onClick={() => handleDelete(log)}>
+                          {actionLoading === `delete-${log.id}` ? "删除中..." : "删除"}
+                        </button>
                       </div>
                     </td>
                   </tr>

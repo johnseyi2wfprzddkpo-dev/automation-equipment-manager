@@ -63,12 +63,13 @@ export default function Login({ onLogin }) {
 
         <label>
           用户名
-          <input className="form-control" value={username} onChange={(event) => setUsername(event.target.value)} required />
+          <input className="form-control" disabled={loading} value={username} onChange={(event) => setUsername(event.target.value)} required />
         </label>
         <label>
           密码
           <input
             className="form-control"
+            disabled={loading}
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}

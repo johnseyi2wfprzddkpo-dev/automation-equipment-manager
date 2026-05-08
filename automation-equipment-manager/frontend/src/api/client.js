@@ -3,6 +3,41 @@ const DEFAULT_API_BASE_URL = import.meta.env.DEV
   : "https://automation-equipment-manager-api.onrender.com";
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, "");
 const TOKEN_KEY = "aem_access_token";
+let activeRequestCount = 0;
+const loadingListeners = new Set();
+
+function notifyLoadingListeners() {
+  loadingListeners.forEach((listener) => listener(activeRequestCount));
+}
+
+function beginRequest() {
+  activeRequestCount += 1;
+  notifyLoadingListeners();
+}
+
+function endRequest() {
+  activeRequestCount = Math.max(activeRequestCount - 1, 0);
+  notifyLoadingListeners();
+}
+
+export function subscribeApiLoading(listener) {
+  loadingListeners.add(listener);
+  listener(activeRequestCount);
+  return () => loadingListeners.delete(listener);
+}
+
+function getFriendlyErrorMessage(error) {
+  const message = error?.message || "";
+  if (
+    error instanceof TypeError ||
+    message.includes("Failed to fetch") ||
+    message.includes("NetworkError") ||
+    message.includes("Load failed")
+  ) {
+    return "网络连接失败，请检查后端服务是否启动、网络是否正常，或稍后重试。";
+  }
+  return message || "请求失败，请稍后重试。";
+}
 
 export function getStoredToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -19,6 +54,7 @@ export function clearStoredToken() {
 async function request(path, options = {}) {
   const token = getStoredToken();
   const isFormData = options.body instanceof FormData;
+  beginRequest();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
@@ -26,6 +62,9 @@ async function request(path, options = {}) {
       ...(options.headers ?? {}),
     },
     ...options,
+  }).catch((error) => {
+    endRequest();
+    throw new Error(getFriendlyErrorMessage(error));
   });
 
   if (!response.ok) {
@@ -36,20 +75,29 @@ async function request(path, options = {}) {
     } catch {
       message = response.statusText || message;
     }
+    endRequest();
     throw new Error(message);
   }
 
-  return response.json();
+  try {
+    return await response.json();
+  } finally {
+    endRequest();
+  }
 }
 
 async function requestBlob(path, options = {}) {
   const token = getStoredToken();
+  beginRequest();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {}),
     },
     ...options,
+  }).catch((error) => {
+    endRequest();
+    throw new Error(getFriendlyErrorMessage(error));
   });
 
   if (!response.ok) {
@@ -60,10 +108,15 @@ async function requestBlob(path, options = {}) {
     } catch {
       message = response.statusText || message;
     }
+    endRequest();
     throw new Error(message);
   }
 
-  return response.blob();
+  try {
+    return await response.blob();
+  } finally {
+    endRequest();
+  }
 }
 
 function buildQuery(filters = {}) {

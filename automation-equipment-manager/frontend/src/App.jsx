@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { clearStoredToken, getMe, getStoredToken } from "./api/client.js";
+import GlobalLoadingBar from "./components/GlobalLoadingBar.jsx";
 import Layout from "./components/Layout.jsx";
 import BenefitAnalysis from "./pages/BenefitAnalysis.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -20,6 +21,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [checkingSession, setCheckingSession] = useState(true);
 
+
   useEffect(() => {
     if (!getStoredToken()) {
       setCheckingSession(false);
@@ -33,6 +35,8 @@ export default function App() {
         setUser(null);
       })
       .finally(() => setCheckingSession(false));
+
+      
   }, []);
 
   function openPage(nextPage) {
@@ -127,16 +131,29 @@ export default function App() {
   }
 
   if (checkingSession) {
-    return <div className="auth-loading">正在检查登录状态...</div>;
+    return (
+      <>
+        <GlobalLoadingBar />
+        <div className="auth-loading">正在检查登录状态...</div>
+      </>
+    );
   }
 
   if (!user) {
-    return <Login onLogin={setUser} />;
+    return (
+      <>
+        <GlobalLoadingBar />
+        <Login onLogin={setUser} />
+      </>
+    );
   }
 
   return (
-    <Layout currentPage={page} onLogout={handleLogout} onNavigate={openPage} user={user}>
-      {renderPage()}
-    </Layout>
+    <>
+      <GlobalLoadingBar />
+      <Layout currentPage={page} onLogout={handleLogout} onNavigate={openPage} user={user}>
+        {renderPage()}
+      </Layout>
+    </>
   );
 }

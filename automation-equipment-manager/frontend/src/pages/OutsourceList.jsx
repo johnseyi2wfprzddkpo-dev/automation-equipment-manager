@@ -18,6 +18,7 @@ export default function OutsourceList() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const pagedLogs = useMemo(() => paginateItems(logs, page, pageSize), [logs, page, pageSize]);
@@ -66,6 +67,7 @@ export default function OutsourceList() {
 
     setError("");
     setMessage("");
+    setActionLoading(`return-${log.id}`);
     try {
       await returnOutsourceLog(log.id, {
         actual_return_date: form.actual_return_date,
@@ -77,26 +79,34 @@ export default function OutsourceList() {
       loadLogs();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
   async function handleDownloadTemplate() {
     setError("");
+    setActionLoading("template");
     try {
       const blob = await downloadOutsourceTemplate();
       downloadBlob(blob, "外发记录导入模板.xlsx");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
   async function handleExport() {
     setError("");
+    setActionLoading("export");
     try {
       const blob = await exportOutsourceExcel();
       downloadBlob(blob, "外发记录导出.xlsx");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
@@ -109,12 +119,15 @@ export default function OutsourceList() {
 
     setError("");
     setMessage("");
+    setActionLoading("import");
     try {
       const result = await importOutsourceExcel(file);
       setMessage(`导入完成：新增 ${result.created_count} 条，登记返回 ${result.returned_count} 条，跳过 ${result.skipped_count} 条。`);
       loadLogs();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setActionLoading("");
     }
   }
 
@@ -126,18 +139,18 @@ export default function OutsourceList() {
           <h2>外发记录</h2>
         </div>
         <div className="action-row">
-          <button className="secondary-button" onClick={handleDownloadTemplate} type="button">
-            下载模板
+          <button className="secondary-button" disabled={Boolean(actionLoading) || loading} onClick={handleDownloadTemplate} type="button">
+            {actionLoading === "template" ? "下载中..." : "下载模板"}
           </button>
-          <label className="file-button">
-            导入Excel
-            <input accept=".xlsx" onChange={handleImport} type="file" />
+          <label className={`file-button ${actionLoading || loading ? "disabled" : ""}`}>
+            {actionLoading === "import" ? "导入中..." : "导入Excel"}
+            <input accept=".xlsx" disabled={Boolean(actionLoading) || loading} onChange={handleImport} type="file" />
           </label>
-          <button className="secondary-button" onClick={handleExport} type="button">
-            导出Excel
+          <button className="secondary-button" disabled={Boolean(actionLoading) || loading} onClick={handleExport} type="button">
+            {actionLoading === "export" ? "导出中..." : "导出Excel"}
           </button>
-          <button className="secondary-button" onClick={loadLogs} type="button">
-            刷新
+          <button className="secondary-button" disabled={loading} onClick={loadLogs} type="button">
+            {loading ? "刷新中..." : "刷新"}
           </button>
         </div>
       </div>
@@ -147,7 +160,7 @@ export default function OutsourceList() {
 
       <section className="panel table-panel">
         {loading ? (
-          <div className="empty-state">正在加载外发记录...</div>
+          <div className="empty-state loading-state">正在加载外发记录...</div>
         ) : logs.length === 0 ? (
           <div className="empty-state">暂无外发记录，可在设备详情页登记外发。</div>
         ) : (
@@ -210,8 +223,8 @@ export default function OutsourceList() {
                               <option value="调试中">调试中</option>
                               <option value="生产中">生产中</option>
                             </select>
-                            <button className="primary-button" onClick={() => handleReturn(log)} type="button">
-                              返回
+                            <button className="primary-button" disabled={actionLoading === `return-${log.id}`} onClick={() => handleReturn(log)} type="button">
+                              {actionLoading === `return-${log.id}` ? "登记中..." : "返回"}
                             </button>
                           </div>
                         )}

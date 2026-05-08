@@ -18,6 +18,7 @@ function getDefaultUtilizationRange() {
 export default function Dashboard({ onNavigate }) {
   const [health, setHealth] = useState("检查中");
   const [summary, setSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [utilizationFilters, setUtilizationFilters] = useState(getDefaultUtilizationRange);
   const [utilization, setUtilization] = useState(null);
   const [utilizationError, setUtilizationError] = useState("");
@@ -35,9 +36,11 @@ export default function Dashboard({ onNavigate }) {
       .then((data) => setHealth(data.status === "ok" ? "后端正常" : "状态异常"))
       .catch(() => setHealth("后端未连接"));
 
+    setSummaryLoading(true);
     getDashboardSummary()
       .then(setSummary)
-      .catch(() => setSummary(null));
+      .catch(() => setSummary(null))
+      .finally(() => setSummaryLoading(false));
   }, []);
 
   function loadUtilization() {
@@ -128,15 +131,15 @@ export default function Dashboard({ onNavigate }) {
                 value={utilizationFilters.end_date}
                 onChange={(event) => setUtilizationFilters((current) => ({ ...current, end_date: event.target.value }))}
               />
-              <button className="secondary-button" onClick={loadUtilization} type="button">
-                统计
+              <button className="secondary-button" disabled={utilizationLoading} onClick={loadUtilization} type="button">
+                {utilizationLoading ? "统计中..." : "统计"}
               </button>
             </div>
           </div>
 
           {utilizationError && <div className="alert">{utilizationError}</div>}
           {utilizationLoading ? (
-            <div className="empty-state">正在统计设备利用率...</div>
+            <div className="empty-state loading-state">正在统计设备利用率...</div>
           ) : !utilization ? (
             <div className="empty-state">暂无利用率数据。</div>
           ) : (
@@ -253,7 +256,9 @@ export default function Dashboard({ onNavigate }) {
             <p className="panel-kicker">Maintenance</p>
             <h3>保养提醒</h3>
           </div>
-          {!summary || summary.maintenance_reminders.length === 0 ? (
+          {summaryLoading ? (
+            <div className="empty-state loading-state">正在加载保养提醒...</div>
+          ) : !summary || summary.maintenance_reminders.length === 0 ? (
             <div className="empty-state">未来 7 天暂无保养提醒。</div>
           ) : (
             <div className="table-wrap">
@@ -294,7 +299,9 @@ export default function Dashboard({ onNavigate }) {
             <p className="panel-kicker">Timeline</p>
             <h3>最近状态变更</h3>
           </div>
-          {!summary || summary.recent_status_logs.length === 0 ? (
+          {summaryLoading ? (
+            <div className="empty-state loading-state">正在加载状态变更...</div>
+          ) : !summary || summary.recent_status_logs.length === 0 ? (
             <div className="empty-state">暂无状态变更记录。</div>
           ) : (
             <div className="table-wrap">
