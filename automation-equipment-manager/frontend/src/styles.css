@@ -2920,13 +2920,27 @@ select.form-control option {
   .benefit-ranking-table td:nth-child(4)::before { content: "效率提升"; }
 
   .outsource-table td:nth-child(1)::before { content: "设备"; }
-  .outsource-table td:nth-child(2)::before { content: "外发单位"; }
-  .outsource-table td:nth-child(3)::before { content: "原因"; }
-  .outsource-table td:nth-child(4)::before { content: "外发日期"; }
-  .outsource-table td:nth-child(5)::before { content: "预计返回"; }
-  .outsource-table td:nth-child(6)::before { content: "实际返回"; }
-  .outsource-table td:nth-child(7)::before { content: "状态"; }
-  .outsource-table td:nth-child(8)::before { content: "操作"; }
+  .outsource-table td:nth-child(2)::before { content: "设备名称"; }
+  .outsource-table td:nth-child(3)::before { content: "外发单位"; }
+  .outsource-table td:nth-child(4)::before { content: "外发原因"; }
+  .outsource-table td:nth-child(5)::before { content: "外发日期"; }
+  .outsource-table td:nth-child(6)::before { content: "预计返回"; }
+  .outsource-table td:nth-child(7)::before { content: "实际返回"; }
+  .outsource-table td:nth-child(8)::before { content: "状态"; }
+  .outsource-table td:nth-child(9)::before { content: "是否超期"; }
+  .outsource-table td:nth-child(10)::before { content: "登记返回"; }
+
+  .inline-return-form {
+    grid-template-columns: 1fr;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .inline-return-form .form-control,
+  .inline-return-form .primary-button {
+    width: 100%;
+    min-width: 0;
+  }
 
   .utilization-table td:nth-child(1)::before { content: "设备编号"; }
   .utilization-table td:nth-child(2)::before { content: "设备名称"; }
