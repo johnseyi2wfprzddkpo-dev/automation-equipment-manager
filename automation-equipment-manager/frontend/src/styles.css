@@ -1702,6 +1702,24 @@ select.form-control option {
   background: var(--surface);
 }
 
+.equipment-table-panel .table-wrap {
+  padding: 0 0 4px;
+}
+
+.page-stack > .panel:has(.filter-grid) {
+  padding: 20px;
+}
+
+.filter-grid {
+  gap: 14px;
+}
+
+.filter-grid .form-control,
+.filter-grid .search-input,
+.filter-grid .secondary-button {
+  min-height: 42px;
+}
+
 .data-table {
   border-collapse: separate;
   border-spacing: 0;
@@ -1753,35 +1771,35 @@ select.form-control option {
 }
 
 .equipment-table-panel {
-  padding: 12px 18px 18px;
+  padding: 18px 20px 20px;
 }
 
 .equipment-table {
-  min-width: 1320px;
+  min-width: 1510px;
   table-layout: fixed;
 }
 
 .equipment-table th,
 .equipment-table td {
-  height: 56px;
-  padding: 10px 14px;
-  line-height: 1.35;
+  height: 68px;
+  padding: 14px 18px;
+  line-height: 1.5;
 }
 
 .equipment-table th:nth-child(1) {
-  width: 116px;
+  width: 136px;
 }
 
 .equipment-table th:nth-child(2) {
-  width: 160px;
+  width: 180px;
 }
 
 .equipment-table th:nth-child(3) {
-  width: 130px;
+  width: 150px;
 }
 
 .equipment-table th:nth-child(4) {
-  width: 92px;
+  width: 112px;
 }
 
 .equipment-table th:nth-child(5) {
@@ -1789,19 +1807,19 @@ select.form-control option {
 }
 
 .equipment-table th:nth-child(6) {
-  width: 96px;
+  width: 140px;
 }
 
 .equipment-table th:nth-child(7) {
-  width: 86px;
+  width: 112px;
 }
 
 .equipment-table th:nth-child(8) {
-  width: 150px;
+  width: 190px;
 }
 
 .equipment-table th:nth-child(9) {
-  width: 206px;
+  width: 230px;
 }
 
 .equipment-table tbody tr:nth-child(even) {
@@ -1812,6 +1830,12 @@ select.form-control option {
 .equipment-table .name-cell,
 .equipment-table .type-cell {
   font-weight: 750;
+}
+
+.equipment-table .code-cell,
+.equipment-table .time-cell {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  letter-spacing: 0;
 }
 
 .equipment-table .status-cell {
@@ -1844,15 +1868,32 @@ select.form-control option {
 
 .equipment-table .action-row {
   display: inline-flex;
-  flex-wrap: nowrap;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
+  min-width: 198px;
 }
 
 .equipment-table .text-button {
-  min-height: 24px;
-  padding: 0;
+  min-height: 30px;
+  min-width: 46px;
+  border: 1px solid rgba(116, 245, 255, 0.22);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(0, 242, 255, 0.05);
+  font-size: 13px;
+  line-height: 1.2;
   white-space: nowrap;
+}
+
+.equipment-table .text-button:hover {
+  border-color: rgba(116, 245, 255, 0.48);
+  background: rgba(0, 242, 255, 0.12);
+}
+
+.equipment-table .text-button.danger {
+  border-color: rgba(255, 180, 171, 0.28);
+  background: rgba(147, 0, 10, 0.12);
 }
 
 .benefit-hero {
