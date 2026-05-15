@@ -9,7 +9,7 @@ from app.security import get_current_user, require_roles
 router = APIRouter(prefix="/benefit-analysis", tags=["效益分析"], dependencies=[Depends(get_current_user)])
 
 
-def _round(value: float | None, digits: int = 2):
+def _round(value: float | None, digits: int = 4):
     if value is None:
         return None
     return round(value, digits)
@@ -66,19 +66,25 @@ def _ensure_unique_config(db: Session, payload: schemas.BenefitConfigBase, curre
 
 
 def _calculate_item(config, equipment):
-    manual_labor_hours = config.monthly_output_qty * config.manual_minutes_per_unit * config.manual_worker_count / 60
-    automation_labor_hours = config.monthly_output_qty * config.automation_minutes_per_unit * config.automation_worker_count / 60
-    time_saved_hours = max(manual_labor_hours - automation_labor_hours, 0)
-    saved_worker_count = max(config.manual_worker_count - config.automation_worker_count, 0)
+    manual_unit_labor_minutes = config.manual_minutes_per_unit * config.manual_worker_count
+    automation_unit_labor_minutes = config.automation_minutes_per_unit * config.automation_worker_count
+    manual_labor_hours = config.monthly_output_qty * manual_unit_labor_minutes / 60
+    automation_labor_hours = config.monthly_output_qty * automation_unit_labor_minutes / 60
+    time_saved_hours = manual_labor_hours - automation_labor_hours
+    saved_worker_count = config.manual_worker_count - config.automation_worker_count
     efficiency_improvement_rate = (
-        (config.manual_minutes_per_unit / config.automation_minutes_per_unit - 1) * 100
-        if config.automation_minutes_per_unit > 0
+        (manual_unit_labor_minutes / automation_unit_labor_minutes - 1) * 100
+        if automation_unit_labor_minutes > 0
         else 0
     )
     monthly_labor_saving = time_saved_hours * config.labor_cost_per_hour
-    monthly_depreciation_cost = config.investment_amount / config.depreciation_months if config.investment_amount else 0
-    monthly_equipment_cost = monthly_depreciation_cost + config.monthly_maintenance_cost + config.monthly_energy_cost
-    monthly_net_benefit = monthly_labor_saving - monthly_equipment_cost
+    monthly_depreciation_cost = (
+        config.investment_amount / config.depreciation_months
+        if config.investment_amount and config.depreciation_months
+        else 0
+    )
+    monthly_device_running_cost = config.monthly_maintenance_cost + config.monthly_energy_cost
+    monthly_net_benefit = monthly_labor_saving - monthly_device_running_cost
     payback_months = config.investment_amount / monthly_net_benefit if config.investment_amount and monthly_net_benefit > 0 else None
 
     return {
@@ -101,13 +107,16 @@ def _calculate_item(config, equipment):
         "labor_cost_per_hour": _round(config.labor_cost_per_hour),
         "monthly_maintenance_cost": _round(config.monthly_maintenance_cost),
         "monthly_energy_cost": _round(config.monthly_energy_cost),
+        "manual_unit_labor_minutes": _round(manual_unit_labor_minutes),
+        "automation_unit_labor_minutes": _round(automation_unit_labor_minutes),
         "manual_labor_hours": _round(manual_labor_hours),
         "automation_labor_hours": _round(automation_labor_hours),
         "time_saved_hours": _round(time_saved_hours),
-        "efficiency_improvement_rate": _round(max(efficiency_improvement_rate, 0)),
+        "efficiency_improvement_rate": _round(efficiency_improvement_rate),
         "monthly_labor_saving": _round(monthly_labor_saving),
         "monthly_depreciation_cost": _round(monthly_depreciation_cost),
-        "monthly_equipment_cost": _round(monthly_equipment_cost),
+        "monthly_device_running_cost": _round(monthly_device_running_cost),
+        "monthly_equipment_cost": _round(monthly_device_running_cost),
         "monthly_net_benefit": _round(monthly_net_benefit),
         "payback_months": _round(payback_months),
         "estimate_basis": "按效益分析表录入数据计算",
@@ -181,6 +190,7 @@ def get_benefit_analysis(db: Session = Depends(get_db)):
         "time_saved_hours": sum(item["time_saved_hours"] for item in items),
         "monthly_labor_saving": sum(item["monthly_labor_saving"] for item in items),
         "monthly_depreciation_cost": sum(item["monthly_depreciation_cost"] for item in items),
+        "monthly_device_running_cost": sum(item["monthly_device_running_cost"] for item in items),
         "monthly_equipment_cost": sum(item["monthly_equipment_cost"] for item in items),
         "monthly_net_benefit": sum(item["monthly_net_benefit"] for item in items),
     }
@@ -199,9 +209,10 @@ def get_benefit_analysis(db: Session = Depends(get_db)):
             "total_manual_labor_hours": _round(totals["manual_labor_hours"]),
             "total_automation_labor_hours": _round(totals["automation_labor_hours"]),
             "total_time_saved_hours": _round(totals["time_saved_hours"]),
-            "average_efficiency_improvement_rate": _round(max(average_efficiency_rate, 0)),
+            "average_efficiency_improvement_rate": _round(average_efficiency_rate),
             "monthly_labor_saving": _round(totals["monthly_labor_saving"]),
             "monthly_depreciation_cost": _round(totals["monthly_depreciation_cost"]),
+            "monthly_device_running_cost": _round(totals["monthly_device_running_cost"]),
             "monthly_equipment_cost": _round(totals["monthly_equipment_cost"]),
             "monthly_net_benefit": _round(totals["monthly_net_benefit"]),
             "average_payback_months": _round(average_payback_months),

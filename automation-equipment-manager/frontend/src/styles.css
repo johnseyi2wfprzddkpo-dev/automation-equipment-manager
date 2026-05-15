@@ -1941,6 +1941,12 @@ select.form-control option {
   align-items: end;
 }
 
+.benefit-config-form.benefit-record-form {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  gap: 14px;
+}
+
 .benefit-config-form label {
   display: grid;
   gap: 7px;
@@ -1951,6 +1957,53 @@ select.form-control option {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
+}
+
+.benefit-form-section {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(104, 176, 255, 0.14);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(52, 213, 255, 0.045), rgba(255, 255, 255, 0.02));
+  padding: 14px;
+}
+
+.benefit-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.benefit-section-heading span {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(0, 243, 255, 0.08);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.benefit-section-heading h4 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 15px;
+}
+
+.benefit-section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.benefit-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .benefit-wide-field {
@@ -2109,6 +2162,23 @@ select.form-control option {
 .benefit-config-table .action-row {
   flex-wrap: nowrap;
   gap: 12px;
+}
+
+.benefit-config-table td > strong,
+.benefit-table td > strong {
+  display: block;
+  color: var(--text-strong);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.benefit-config-table td > span,
+.benefit-table td > span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .benefit-positive {
@@ -3229,4 +3299,46 @@ select.form-control option {
   .benefit-config-table td {
     grid-template-columns: 82px minmax(0, 1fr);
   }
+}
+
+@media (max-width: 767px) {
+  .benefit-form-section {
+    padding: 12px;
+  }
+
+  .benefit-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .benefit-form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .benefit-active-toggle {
+    width: 100%;
+  }
+
+  .benefit-config-table td:nth-child(1)::before,
+  .benefit-table td:nth-child(1)::before,
+  .benefit-ranking-table td:nth-child(1)::before { content: "设备"; }
+  .benefit-config-table td:nth-child(2)::before,
+  .benefit-table td:nth-child(2)::before { content: "产品/工序"; }
+  .benefit-config-table td:nth-child(3)::before,
+  .benefit-table td:nth-child(3)::before { content: "月产量"; }
+  .benefit-config-table td:nth-child(4)::before { content: "人工方案"; }
+  .benefit-config-table td:nth-child(5)::before { content: "自动化方案"; }
+  .benefit-config-table td:nth-child(6)::before { content: "成本参数"; }
+  .benefit-config-table td:nth-child(7)::before { content: "状态"; }
+  .benefit-config-table td:nth-child(8)::before { content: "操作"; }
+  .benefit-table td:nth-child(4)::before { content: "人工月工时"; }
+  .benefit-table td:nth-child(5)::before { content: "自动化月工时"; }
+  .benefit-table td:nth-child(6)::before { content: "月节省工时"; }
+  .benefit-table td:nth-child(7)::before { content: "效率提升"; }
+  .benefit-table td:nth-child(8)::before { content: "设备月运行成本"; }
+  .benefit-table td:nth-child(9)::before { content: "月净现金收益"; }
+  .benefit-table td:nth-child(10)::before { content: "现金回本周期"; }
+  .benefit-ranking-table td:nth-child(2)::before { content: "结果"; }
+  .benefit-ranking-table td:nth-child(3)::before { content: "月节省工时"; }
+  .benefit-ranking-table td:nth-child(4)::before { content: "效率提升"; }
 }

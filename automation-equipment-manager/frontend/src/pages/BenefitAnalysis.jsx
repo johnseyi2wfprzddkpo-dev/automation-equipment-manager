@@ -33,18 +33,22 @@ function getEmptyForm() {
 }
 
 function currency(value) {
-  return `¥${Number(value ?? 0).toLocaleString("zh-CN", { maximumFractionDigits: 2 })}`;
+  return `￥${Number(value ?? 0).toLocaleString("zh-CN", { maximumFractionDigits: 2 })}`;
 }
 
 function number(value, suffix = "") {
   if (value === null || value === undefined) {
     return "-";
   }
-  return `${Number(value).toLocaleString("zh-CN", { maximumFractionDigits: 2 })}${suffix}`;
+  return `${Number(value).toLocaleString("zh-CN", { maximumFractionDigits: 4 })}${suffix}`;
 }
 
 function payback(value) {
   return value === null || value === undefined ? "暂不可测算" : `${number(value)} 个月`;
+}
+
+function runningCost(item) {
+  return item?.monthly_device_running_cost ?? item?.monthly_equipment_cost ?? 0;
 }
 
 function normalizePayload(form) {
@@ -88,6 +92,7 @@ export default function BenefitAnalysis() {
   const [configPageSize, setConfigPageSize] = useState(10);
   const [detailPage, setDetailPage] = useState(1);
   const [detailPageSize, setDetailPageSize] = useState(10);
+
   const detailItems = useMemo(() => analysis?.items ?? [], [analysis]);
   const pagedConfigs = useMemo(() => paginateItems(configs, configPage, configPageSize), [configs, configPage, configPageSize]);
   const pagedDetailItems = useMemo(() => paginateItems(detailItems, detailPage, detailPageSize), [detailItems, detailPage, detailPageSize]);
@@ -115,7 +120,7 @@ export default function BenefitAnalysis() {
         setConfigPage(1);
         setDetailPage(1);
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(err.message || "效益分析数据加载失败"))
       .finally(() => setLoading(false));
   }
 
@@ -156,7 +161,7 @@ export default function BenefitAnalysis() {
       setConfigPage(1);
       setDetailPage(1);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "保存效益分析记录失败");
     } finally {
       setSaving(false);
     }
@@ -182,6 +187,7 @@ export default function BenefitAnalysis() {
       remark: config.remark || "",
       is_active: config.is_active,
     });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleDelete(config) {
@@ -199,7 +205,7 @@ export default function BenefitAnalysis() {
       setConfigPage(1);
       setDetailPage(1);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "删除效益分析记录失败");
     } finally {
       setDeletingId(null);
     }
@@ -217,12 +223,23 @@ export default function BenefitAnalysis() {
   const summaryCards = useMemo(() => {
     const summary = analysis?.summary;
     return [
-      { label: "分析记录", value: number(summary?.config_count), tone: "default", note: "设备 + 产品 + 工序" },
+      { label: "效益分析记录", value: number(summary?.config_count), tone: "default", note: "仅统计启用记录" },
       { label: "月产量", value: number(summary?.monthly_output_qty), tone: "info", note: "来自效益分析表" },
-      { label: "月节省人工成本", value: currency(summary?.monthly_labor_saving), tone: "success", note: "按每条记录独立计算" },
-      { label: "月设备使用成本", value: currency(summary?.monthly_equipment_cost), tone: "warning", note: "折旧 + 维护 + 能耗" },
-      { label: "月预计净收益", value: currency(summary?.monthly_net_benefit), tone: "info", note: "人工节省 - 设备成本" },
-      { label: "平均回本周期", value: payback(summary?.average_payback_months), tone: "default", note: "仅统计净收益为正的记录" },
+      { label: "人工月工时", value: number(summary?.total_manual_labor_hours, " h"), tone: "default", note: "人工方案总工时" },
+      { label: "自动化月工时", value: number(summary?.total_automation_labor_hours, " h"), tone: "default", note: "自动化方案总工时" },
+      {
+        label: "月节省工时",
+        value: number(summary?.total_time_saved_hours, " h"),
+        tone: (summary?.total_time_saved_hours ?? 0) >= 0 ? "success" : "danger",
+        note: "允许为负数",
+      },
+      {
+        label: "月净现金收益",
+        value: currency(summary?.monthly_net_benefit),
+        tone: (summary?.monthly_net_benefit ?? 0) >= 0 ? "success" : "danger",
+        note: "人工节省 - 运行成本",
+      },
+      { label: "平均现金回本周期", value: payback(summary?.average_payback_months), tone: "default", note: "仅统计可回本记录" },
     ];
   }, [analysis]);
 
@@ -232,10 +249,12 @@ export default function BenefitAnalysis() {
         <div>
           <p className="eyebrow">Automation ROI</p>
           <h2>自动化设备效益分析</h2>
-          <p className="hero-subtitle">只基于效益分析表计算。每条记录代表一台设备、一款产品和一道工序，不再对全部设备台账自动套用统一参数。</p>
+          <p className="hero-subtitle">
+            只基于效益分析记录测算。每条记录对应一台设备、一款产品、一道工序和一套独立参数；未录入效益记录的设备不会进入分析。
+          </p>
         </div>
         <div className="hero-status">
-          <StatusBadge tone="success">独立记录测算</StatusBadge>
+          <StatusBadge tone="success">记录驱动测算</StatusBadge>
           <span>{analysis ? `${analysis.summary.config_count} 条启用记录` : "等待统计"}</span>
         </div>
       </div>
@@ -250,87 +269,132 @@ export default function BenefitAnalysis() {
             <h3>{editingId ? "编辑效益分析记录" : "新增效益分析记录"}</h3>
           </div>
           {editingId && (
-            <button className="secondary-button" onClick={() => { setEditingId(null); setForm(getEmptyForm()); }} type="button">
+            <button
+              className="secondary-button"
+              onClick={() => {
+                setEditingId(null);
+                setForm(getEmptyForm());
+              }}
+              type="button"
+            >
               取消编辑
             </button>
           )}
         </div>
 
-        <form className="benefit-config-form" onSubmit={handleSubmit}>
-          <label>
-            <span>设备</span>
-            <select className="form-control" value={form.equipment_id} onChange={(event) => handleEquipmentChange(event.target.value)}>
-              <option value="">请选择设备</option>
-              {equipment.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.equipment_code} / {item.equipment_name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>产品货号</span>
-            <input className="form-control" value={form.product_code} onChange={(event) => updateForm("product_code", event.target.value)} />
-          </label>
-          <label>
-            <span>产品名称</span>
-            <input className="form-control" value={form.product_name} onChange={(event) => updateForm("product_name", event.target.value)} />
-          </label>
-          <label>
-            <span>工序名称</span>
-            <input className="form-control" value={form.process_name} onChange={(event) => updateForm("process_name", event.target.value)} />
-          </label>
-          <label>
-            <span>月产量</span>
-            <input className="form-control" min="0" step="1" type="number" value={form.monthly_output_qty} onChange={(event) => updateForm("monthly_output_qty", event.target.value)} />
-          </label>
-          <label>
-            <span>设备投入金额</span>
-            <input className="form-control" min="0" step="100" type="number" value={form.investment_amount} onChange={(event) => updateForm("investment_amount", event.target.value)} />
-          </label>
-          <label>
-            <span>人工分钟/件</span>
-            <input className="form-control" min="0.1" step="0.1" type="number" value={form.manual_minutes_per_unit} onChange={(event) => updateForm("manual_minutes_per_unit", event.target.value)} />
-          </label>
-          <label>
-            <span>人工人数</span>
-            <input className="form-control" min="0.1" step="0.1" type="number" value={form.manual_worker_count} onChange={(event) => updateForm("manual_worker_count", event.target.value)} />
-          </label>
-          <label>
-            <span>自动化分钟/件</span>
-            <input className="form-control" min="0.1" step="0.1" type="number" value={form.automation_minutes_per_unit} onChange={(event) => updateForm("automation_minutes_per_unit", event.target.value)} />
-          </label>
-          <label>
-            <span>自动化看机人数</span>
-            <input className="form-control" min="0.1" step="0.1" type="number" value={form.automation_worker_count} onChange={(event) => updateForm("automation_worker_count", event.target.value)} />
-          </label>
-          <label>
-            <span>人工成本/小时</span>
-            <input className="form-control" min="0" step="1" type="number" value={form.labor_cost_per_hour} onChange={(event) => updateForm("labor_cost_per_hour", event.target.value)} />
-          </label>
-          <label>
-            <span>折旧周期（月）</span>
-            <input className="form-control" min="1" step="1" type="number" value={form.depreciation_months} onChange={(event) => updateForm("depreciation_months", event.target.value)} />
-          </label>
-          <label>
-            <span>月维护费</span>
-            <input className="form-control" min="0" step="50" type="number" value={form.monthly_maintenance_cost} onChange={(event) => updateForm("monthly_maintenance_cost", event.target.value)} />
-          </label>
-          <label>
-            <span>月能耗费</span>
-            <input className="form-control" min="0" step="50" type="number" value={form.monthly_energy_cost} onChange={(event) => updateForm("monthly_energy_cost", event.target.value)} />
-          </label>
-          <label className="benefit-wide-field">
-            <span>备注</span>
-            <input className="form-control" value={form.remark} onChange={(event) => updateForm("remark", event.target.value)} />
-          </label>
-          <label className="checkbox-row benefit-active-toggle">
-            <input checked={form.is_active} onChange={(event) => updateForm("is_active", event.target.checked)} type="checkbox" />
-            <span>启用测算</span>
-          </label>
-          <button className="primary-button" disabled={saving} type="submit">
-            {saving ? "保存中..." : editingId ? "保存修改" : "新增记录"}
-          </button>
+        <form className="benefit-config-form benefit-record-form" onSubmit={handleSubmit}>
+          <section className="benefit-form-section">
+            <div className="benefit-section-heading">
+              <span>01</span>
+              <h4>基础信息</h4>
+            </div>
+            <div className="benefit-section-grid">
+              <label>
+                <span>设备</span>
+                <select className="form-control" value={form.equipment_id} onChange={(event) => handleEquipmentChange(event.target.value)}>
+                  <option value="">请选择设备</option>
+                  {equipment.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.equipment_code} / {item.equipment_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>产品货号</span>
+                <input className="form-control" value={form.product_code} onChange={(event) => updateForm("product_code", event.target.value)} />
+              </label>
+              <label>
+                <span>产品名称</span>
+                <input className="form-control" value={form.product_name} onChange={(event) => updateForm("product_name", event.target.value)} />
+              </label>
+              <label>
+                <span>工序名称</span>
+                <input className="form-control" value={form.process_name} onChange={(event) => updateForm("process_name", event.target.value)} />
+              </label>
+              <label>
+                <span>月产量</span>
+                <input className="form-control" min="0" step="1" type="number" value={form.monthly_output_qty} onChange={(event) => updateForm("monthly_output_qty", event.target.value)} />
+              </label>
+            </div>
+          </section>
+
+          <section className="benefit-form-section">
+            <div className="benefit-section-heading">
+              <span>02</span>
+              <h4>人工方案</h4>
+            </div>
+            <div className="benefit-section-grid">
+              <label>
+                <span>人工单件耗时（分钟/件）</span>
+                <input className="form-control" min="0.0001" step="0.0001" type="number" value={form.manual_minutes_per_unit} onChange={(event) => updateForm("manual_minutes_per_unit", event.target.value)} />
+              </label>
+              <label>
+                <span>人工人数</span>
+                <input className="form-control" min="0.01" step="0.01" type="number" value={form.manual_worker_count} onChange={(event) => updateForm("manual_worker_count", event.target.value)} />
+              </label>
+              <label>
+                <span>人工成本/小时</span>
+                <input className="form-control" min="0" step="0.01" type="number" value={form.labor_cost_per_hour} onChange={(event) => updateForm("labor_cost_per_hour", event.target.value)} />
+              </label>
+            </div>
+          </section>
+
+          <section className="benefit-form-section">
+            <div className="benefit-section-heading">
+              <span>03</span>
+              <h4>自动化方案</h4>
+            </div>
+            <div className="benefit-section-grid">
+              <label>
+                <span>自动化单件耗时（分钟/件）</span>
+                <input className="form-control" min="0.0001" step="0.0001" type="number" value={form.automation_minutes_per_unit} onChange={(event) => updateForm("automation_minutes_per_unit", event.target.value)} />
+              </label>
+              <label>
+                <span>自动化看机人数</span>
+                <input className="form-control" min="0.01" step="0.01" type="number" value={form.automation_worker_count} onChange={(event) => updateForm("automation_worker_count", event.target.value)} />
+              </label>
+            </div>
+          </section>
+
+          <section className="benefit-form-section">
+            <div className="benefit-section-heading">
+              <span>04</span>
+              <h4>成本参数</h4>
+            </div>
+            <div className="benefit-section-grid">
+              <label>
+                <span>设备投入金额</span>
+                <input className="form-control" min="0" step="0.01" type="number" value={form.investment_amount} onChange={(event) => updateForm("investment_amount", event.target.value)} />
+              </label>
+              <label>
+                <span>折旧周期（月，仅参考）</span>
+                <input className="form-control" min="1" step="1" type="number" value={form.depreciation_months} onChange={(event) => updateForm("depreciation_months", event.target.value)} />
+              </label>
+              <label>
+                <span>月维护费</span>
+                <input className="form-control" min="0" step="0.01" type="number" value={form.monthly_maintenance_cost} onChange={(event) => updateForm("monthly_maintenance_cost", event.target.value)} />
+              </label>
+              <label>
+                <span>月能耗费</span>
+                <input className="form-control" min="0" step="0.01" type="number" value={form.monthly_energy_cost} onChange={(event) => updateForm("monthly_energy_cost", event.target.value)} />
+              </label>
+              <label className="benefit-wide-field">
+                <span>备注</span>
+                <input className="form-control" value={form.remark} onChange={(event) => updateForm("remark", event.target.value)} />
+              </label>
+            </div>
+          </section>
+
+          <div className="benefit-form-actions">
+            <label className="checkbox-row benefit-active-toggle">
+              <input checked={form.is_active} onChange={(event) => updateForm("is_active", event.target.checked)} type="checkbox" />
+              <span>启用测算</span>
+            </label>
+            <button className="primary-button" disabled={saving} type="submit">
+              {saving ? "保存中..." : editingId ? "保存修改" : "新增记录"}
+            </button>
+          </div>
         </form>
       </section>
 
@@ -357,7 +421,7 @@ export default function BenefitAnalysis() {
             <section className="panel">
               <div className="panel-header">
                 <p className="panel-kicker">Top Benefit</p>
-                <h3>效益最高记录</h3>
+                <h3>月净现金收益最高</h3>
               </div>
               <BenefitRankingTable items={analysis.best_items} mode="benefit" />
             </section>
@@ -365,7 +429,7 @@ export default function BenefitAnalysis() {
             <section className="panel">
               <div className="panel-header">
                 <p className="panel-kicker">Payback Risk</p>
-                <h3>回本周期最长记录</h3>
+                <h3>现金回本周期最长</h3>
               </div>
               <BenefitRankingTable items={analysis.longest_payback_items} mode="payback" />
             </section>
@@ -375,7 +439,7 @@ export default function BenefitAnalysis() {
             <div className="panel-header benefit-table-header">
               <div>
                 <p className="panel-kicker">Record Manage</p>
-                <h3>效益分析表</h3>
+                <h3>效益分析记录表</h3>
               </div>
               <span className="muted-text">共 {configs.length} 条记录</span>
             </div>
@@ -410,13 +474,13 @@ export default function BenefitAnalysis() {
                       <th>设备</th>
                       <th>产品/工序</th>
                       <th>月产量</th>
-                      <th>节省人数</th>
-                      <th>人工工时</th>
-                      <th>自动化工时</th>
-                      <th>节省工时</th>
+                      <th>人工月工时</th>
+                      <th>自动化月工时</th>
+                      <th>月节省工时</th>
                       <th>效率提升</th>
-                      <th>月净收益</th>
-                      <th>回本周期</th>
+                      <th>设备月运行成本</th>
+                      <th>月净现金收益</th>
+                      <th>现金回本周期</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -431,11 +495,14 @@ export default function BenefitAnalysis() {
                           <span>{item.process_name}</span>
                         </td>
                         <td>{number(item.monthly_output_qty)}</td>
-                        <td>{number(item.saved_worker_count)}</td>
-                        <td>{number(item.manual_labor_hours)}</td>
-                        <td>{number(item.automation_labor_hours)}</td>
-                        <td>{number(item.time_saved_hours)}</td>
-                        <td>{number(item.efficiency_improvement_rate, "%")}</td>
+                        <td>{number(item.manual_labor_hours, " h")}</td>
+                        <td>{number(item.automation_labor_hours, " h")}</td>
+                        <td className={item.time_saved_hours >= 0 ? "benefit-positive" : "benefit-negative"}>{number(item.time_saved_hours, " h")}</td>
+                        <td className={item.efficiency_improvement_rate >= 0 ? "benefit-positive" : "benefit-negative"}>{number(item.efficiency_improvement_rate, "%")}</td>
+                        <td>
+                          <strong>{currency(runningCost(item))}</strong>
+                          <span>折旧参考 {currency(item.monthly_depreciation_cost)}</span>
+                        </td>
                         <td className={item.monthly_net_benefit >= 0 ? "benefit-positive" : "benefit-negative"}>{currency(item.monthly_net_benefit)}</td>
                         <td>{payback(item.payback_months)}</td>
                       </tr>
@@ -459,15 +526,19 @@ export default function BenefitAnalysis() {
           <section className="panel benefit-formula-panel">
             <div className="panel-header">
               <p className="panel-kicker">Formula</p>
-              <h3>测算口径</h3>
+              <h3>现金口径公式说明</h3>
             </div>
             <div className="formula-grid">
-              <span>一条记录 = 一台设备 + 一款产品 + 一道工序</span>
-              <span>人工工时 = 月产量 × 人工分钟/件 × 人工人数 ÷ 60</span>
-              <span>自动化工时 = 月产量 × 自动化分钟/件 × 看机人数 ÷ 60</span>
-              <span>月人工节省 = 节省工时 × 人工成本/小时</span>
-              <span>月设备成本 = 投入金额 ÷ 折旧月数 + 月维护费 + 月能耗费</span>
-              <span>回本周期 = 投入金额 ÷ 月净收益</span>
+              <span>一条记录 = 一台设备 + 一款产品 + 一道工序 + 一套独立参数</span>
+              <span>人工月工时 = 月产量 × 人工单件耗时 × 人工人数 ÷ 60</span>
+              <span>自动化月工时 = 月产量 × 自动化单件耗时 × 自动化看机人数 ÷ 60</span>
+              <span>月节省工时 = 人工月工时 - 自动化月工时（允许为负）</span>
+              <span>效率提升率 = 人工单件人力耗时 ÷ 自动化单件人力耗时 - 1</span>
+              <span>月人工节省 = 月节省工时 × 人工成本/小时</span>
+              <span>设备月运行成本 = 月维护费 + 月能耗费</span>
+              <span>月净现金收益 = 月人工节省 - 设备月运行成本</span>
+              <span>现金回本周期 = 设备投入金额 ÷ 月净现金收益，收益小于等于 0 时暂不可测算</span>
+              <span>月折旧参考 = 设备投入金额 ÷ 折旧周期，仅用于参考，不参与现金回本计算</span>
             </div>
           </section>
         </>
@@ -489,9 +560,9 @@ function ConfigTable({ configs, deletingId, onDelete, onEdit }) {
             <th>设备</th>
             <th>产品/工序</th>
             <th>月产量</th>
-            <th>人工节拍</th>
-            <th>自动化节拍</th>
-            <th>人工成本</th>
+            <th>人工方案</th>
+            <th>自动化方案</th>
+            <th>成本参数</th>
             <th>状态</th>
             <th>操作</th>
           </tr>
@@ -508,9 +579,18 @@ function ConfigTable({ configs, deletingId, onDelete, onEdit }) {
                 <span>{item.process_name}</span>
               </td>
               <td>{number(item.monthly_output_qty)}</td>
-              <td>{number(item.manual_minutes_per_unit)} 分 / {number(item.manual_worker_count)} 人</td>
-              <td>{number(item.automation_minutes_per_unit)} 分 / {number(item.automation_worker_count)} 人</td>
-              <td>{currency(item.labor_cost_per_hour)} / 小时</td>
+              <td>
+                <strong>{number(item.manual_minutes_per_unit)} 分钟/件</strong>
+                <span>{number(item.manual_worker_count)} 人 / {currency(item.labor_cost_per_hour)}/小时</span>
+              </td>
+              <td>
+                <strong>{number(item.automation_minutes_per_unit)} 分钟/件</strong>
+                <span>{number(item.automation_worker_count)} 人看机</span>
+              </td>
+              <td>
+                <strong>运行 {currency(Number(item.monthly_maintenance_cost || 0) + Number(item.monthly_energy_cost || 0))}/月</strong>
+                <span>投入 {currency(item.investment_amount)} / 折旧 {number(item.depreciation_months)} 月</span>
+              </td>
               <td><StatusBadge tone={item.is_active ? "success" : "default"}>{item.is_active ? "启用" : "停用"}</StatusBadge></td>
               <td>
                 <div className="action-row">
@@ -539,8 +619,8 @@ function BenefitRankingTable({ items, mode }) {
         <thead>
           <tr>
             <th>记录</th>
-            <th>{mode === "benefit" ? "月净收益" : "回本周期"}</th>
-            <th>节省工时</th>
+            <th>{mode === "benefit" ? "月净现金收益" : "现金回本周期"}</th>
+            <th>月节省工时</th>
             <th>效率提升</th>
           </tr>
         </thead>
@@ -552,8 +632,8 @@ function BenefitRankingTable({ items, mode }) {
                 <span>{item.product_code} / {item.process_name}</span>
               </td>
               <td>{mode === "benefit" ? currency(item.monthly_net_benefit) : payback(item.payback_months)}</td>
-              <td>{number(item.time_saved_hours, " h")}</td>
-              <td>{number(item.efficiency_improvement_rate, "%")}</td>
+              <td className={item.time_saved_hours >= 0 ? "benefit-positive" : "benefit-negative"}>{number(item.time_saved_hours, " h")}</td>
+              <td className={item.efficiency_improvement_rate >= 0 ? "benefit-positive" : "benefit-negative"}>{number(item.efficiency_improvement_rate, "%")}</td>
             </tr>
           ))}
         </tbody>
